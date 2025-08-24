@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using TheCloud.config;
 using TheCloud.Database;
 using TheCloud.Logging;
+using TheCloud.Utilities;
 
 namespace TheCloud.Commands
 {
@@ -23,6 +24,14 @@ namespace TheCloud.Commands
         }
 
         private static JSONStructure discordConfigData;
+        public static JSONStructure GetConfig() => discordConfigData;
+        public static DiscordClient GetClient() => _client;
+        private static DiscordClient _client;
+
+        public static void SetClient(DiscordClient client)
+        {
+            _client = client;
+        }
 
         public static void SetConfig(JSONStructure config)
         {
@@ -105,8 +114,8 @@ namespace TheCloud.Commands
 
         [SlashCommand("restart", "Admin-only command to restart the bot")]
         public async Task Restart(InteractionContext ctx,
-            [Option("hours", "Hours until restart")] long hours = 0,
-            [Option("minutes", "Minutes until restart")] long minutes = 0)
+     [Option("hours", "Hours until restart")] long hours = 0,
+     [Option("minutes", "Minutes until restart")] long minutes = 0)
         {
             if (!IsAuthorized(ctx))
             {
@@ -139,26 +148,40 @@ namespace TheCloud.Commands
 
             await Task.Delay(totalDelay);
 
-            try
+            // Git-aware restart logic
+            bool pulled = await GitManager.PullLatestAsync();
+            if (!pulled)
             {
-                string exePath = Assembly.GetEntryAssembly().Location;
-
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName = "dotnet",
-                    Arguments = $"\"{exePath}\"",
-                    UseShellExecute = true,
-                    WorkingDirectory = Path.GetDirectoryName(exePath)
-                });
-
-                Environment.Exit(0);
-            }
-            catch (Exception ex)
-            {
+                await BotLogger.LogEventAsync("❌ GitManager: Pull failed. Aborting restart.");
                 await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder()
-                    .WithContent($"❌ Failed to restart: {ex.Message}")
+                    .WithContent("❌ Git pull failed. Restart aborted.")
                     .AsEphemeral());
+                return;
             }
+
+            bool built = await GitManager.BuildProjectAsync();
+            if (!built)
+            {
+                await BotLogger.LogEventAsync("❌ GitManager: Build failed. Aborting restart.");
+                await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder()
+                    .WithContent("❌ Build failed. Restart aborted.")
+                    .AsEphemeral());
+                return;
+            }
+
+            string commitHash = await GitManager.GetLatestCommitHashAsync();
+            bool relaunched = await GitManager.RelaunchBotAsync(commitHash);
+
+            if (!relaunched)
+            {
+                await BotLogger.LogEventAsync("❌ GitManager: Relaunch failed.");
+                await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder()
+                    .WithContent("❌ Relaunch failed. Check logs for details.")
+                    .AsEphemeral());
+                return;
+            }
+
+            Environment.Exit(0);
         }
 
         [SlashCommand("cancel", "Cancel any scheduled shutdown or restart")]
