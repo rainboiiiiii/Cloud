@@ -31,71 +31,113 @@ namespace TheCloud.Commands
 
         private bool IsAuthorized(InteractionContext ctx) => ctx.User.Id == ownerId;
 
-        // 🔔 Announcement helper
-        private async Task AnnounceAsync(InteractionContext ctx, string action, int minutes)
+        private async Task AnnounceAsync(InteractionContext ctx, string action, TimeSpan delay, DateTime scheduledTime)
         {
             var roleMention = $"<@&{discordConfigData.CloudWatcherRoleID}>";
             var channel = await ctx.Client.GetChannelAsync(discordConfigData.AnnouncementChannelID);
 
             var embed = new DiscordEmbedBuilder()
                 .WithTitle($"⚠️ Bot {action} Notice")
-                .WithDescription($"{roleMention}, Cloud is **{action.ToLower()}** in **{minutes} minute(s)**.\nPlease prepare accordingly.")
+                .WithDescription($"{roleMention}, Cloud is **{action.ToLower()}** in **{delay.TotalMinutes:F0} minute(s)**.\nScheduled for **{scheduledTime:HH:mm UTC}**.")
                 .WithColor(action == "Restarting" ? DiscordColor.Orange : DiscordColor.Red)
                 .WithTimestamp(DateTimeOffset.UtcNow);
 
             await channel.SendMessageAsync(new DiscordMessageBuilder()
-                .WithContent(roleMention) // ensures the role is pinged
+                .WithContent(roleMention)
+                .AddEmbed(embed));
+        }
+
+        private async Task AnnounceCancelAsync(InteractionContext ctx)
+        {
+            var roleMention = $"<@&{discordConfigData.CloudWatcherRoleID}>";
+            var channel = await ctx.Client.GetChannelAsync(discordConfigData.AnnouncementChannelID);
+
+            var embed = new DiscordEmbedBuilder()
+                .WithTitle("❌ Scheduled Action Canceled")
+                .WithDescription($"{roleMention}, the previously scheduled shutdown or restart has been **canceled**.")
+                .WithColor(DiscordColor.Green)
+                .WithTimestamp(DateTimeOffset.UtcNow);
+
+            await channel.SendMessageAsync(new DiscordMessageBuilder()
+                .WithContent(roleMention)
                 .AddEmbed(embed));
         }
 
         [SlashCommand("shutdown", "Admin-only command to shut down the bot")]
-        public async Task Shutdown(InteractionContext ctx)
+        public async Task Shutdown(InteractionContext ctx,
+            [Option("hours", "Hours until shutdown")] long hours = 0,
+            [Option("minutes", "Minutes until shutdown")] long minutes = 0)
         {
             if (!IsAuthorized(ctx))
             {
-                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
-                    new DiscordInteractionResponseBuilder()
-                        .WithContent("❌ You are not authorized to use this command.")
-                        .AsEphemeral());
+                await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder()
+                    .WithContent("❌ You are not authorized to use this command.")
+                    .AsEphemeral());
                 return;
             }
 
-            await BotLogger.LogCommandAsync("shutdown", ctx.User.Username, ctx.User.Id);
-            File.WriteAllText("shutdown.flag", "true");
+            var totalDelay = TimeSpan.FromHours(hours) + TimeSpan.FromMinutes(minutes);
+            if (totalDelay.TotalMinutes <= 0)
+            {
+                await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder()
+                    .WithContent("❌ Please specify a delay greater than 0.")
+                    .AsEphemeral());
+                return;
+            }
 
-            await AnnounceAsync(ctx, "Shutting Down", 1);
+            File.WriteAllText("shutdown.flag", totalDelay.TotalMinutes.ToString());
+            await BotLogger.LogCommandAsync("shutdown", ctx.User.Username, ctx.User.Id);
+
+            var shutdownTime = DateTime.UtcNow.Add(totalDelay);
+            await AnnounceAsync(ctx, "Shutting Down", totalDelay, shutdownTime);
 
             await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder()
-                .WithContent("✅ Shutdown initiated. Announcement sent.")
+                .WithContent($"✅ Shutdown scheduled in {totalDelay.TotalMinutes:F0} minute(s). Announcement sent.")
                 .AsEphemeral());
 
-            await BotLogger.LogEventAsync("Shutdown command issued.");
+            await BotLogger.LogEventAsync($"Shutdown scheduled for {shutdownTime:u}");
+
+            await Task.Delay(totalDelay);
+
             await ctx.Client.DisconnectAsync();
             Environment.Exit(0);
         }
 
         [SlashCommand("restart", "Admin-only command to restart the bot")]
-        public async Task Restart(InteractionContext ctx)
+        public async Task Restart(InteractionContext ctx,
+            [Option("hours", "Hours until restart")] long hours = 0,
+            [Option("minutes", "Minutes until restart")] long minutes = 0)
         {
             if (!IsAuthorized(ctx))
             {
-                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
-                    new DiscordInteractionResponseBuilder()
-                        .WithContent("❌ You are not authorized to use this command.")
-                        .AsEphemeral());
+                await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder()
+                    .WithContent("❌ You are not authorized to use this command.")
+                    .AsEphemeral());
                 return;
             }
 
-            await BotLogger.LogCommandAsync("restart", ctx.User.Username, ctx.User.Id);
-            File.WriteAllText("restart.flag", "true");
+            var totalDelay = TimeSpan.FromHours(hours) + TimeSpan.FromMinutes(minutes);
+            if (totalDelay.TotalMinutes <= 0)
+            {
+                await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder()
+                    .WithContent("❌ Please specify a delay greater than 0.")
+                    .AsEphemeral());
+                return;
+            }
 
-            await AnnounceAsync(ctx, "Restarting", 1);
+            File.WriteAllText("restart.flag", totalDelay.TotalMinutes.ToString());
+            await BotLogger.LogCommandAsync("restart", ctx.User.Username, ctx.User.Id);
+
+            var restartTime = DateTime.UtcNow.Add(totalDelay);
+            await AnnounceAsync(ctx, "Restarting", totalDelay, restartTime);
 
             await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder()
-                .WithContent("✅ Restart initiated. Announcement sent.")
+                .WithContent($"✅ Restart scheduled in {totalDelay.TotalMinutes:F0} minute(s). Announcement sent.")
                 .AsEphemeral());
 
-            await BotLogger.LogEventAsync("Restart command issued.");
+            await BotLogger.LogEventAsync($"Restart scheduled for {restartTime:u}");
+
+            await Task.Delay(totalDelay);
 
             try
             {
@@ -119,6 +161,71 @@ namespace TheCloud.Commands
             }
         }
 
+        [SlashCommand("cancel", "Cancel any scheduled shutdown or restart")]
+        public async Task Cancel(InteractionContext ctx)
+        {
+            if (!IsAuthorized(ctx))
+            {
+                await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder()
+                    .WithContent("❌ You are not authorized to use this command.")
+                    .AsEphemeral());
+                return;
+            }
+
+            bool shutdownExists = File.Exists("shutdown.flag");
+            bool restartExists = File.Exists("restart.flag");
+
+            if (!shutdownExists && !restartExists)
+            {
+                await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder()
+                    .WithContent("⚠️ No scheduled shutdown or restart found.")
+                    .AsEphemeral());
+                return;
+            }
+
+            if (shutdownExists) File.Delete("shutdown.flag");
+            if (restartExists) File.Delete("restart.flag");
+
+            await AnnounceCancelAsync(ctx);
+            await BotLogger.LogEventAsync("Scheduled shutdown/restart canceled.");
+
+            await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder()
+                .WithContent("✅ Scheduled shutdown/restart canceled. Announcement sent.")
+                .AsEphemeral());
+        }
+
+        [SlashCommand("status", "Check if a shutdown or restart is scheduled")]
+        public async Task Status(InteractionContext ctx)
+        {
+            if (!IsAuthorized(ctx))
+            {
+                await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder()
+                    .WithContent("❌ You are not authorized to use this command.")
+                    .AsEphemeral());
+                return;
+            }
+
+            string status = "";
+
+            if (File.Exists("shutdown.flag"))
+            {
+                string minutes = File.ReadAllText("shutdown.flag");
+                status += $"🛑 Shutdown scheduled in {minutes} minute(s).\n";
+            }
+
+            if (File.Exists("restart.flag"))
+            {
+                string minutes = File.ReadAllText("restart.flag");
+                status += $"🔄 Restart scheduled in {minutes} minute(s).\n";
+            }
+
+            if (string.IsNullOrEmpty(status))
+                status = "✅ No shutdown or restart is currently scheduled.";
+
+            await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder()
+                .WithContent(status)
+                .AsEphemeral());
+        }
         [SlashCommand("postimage", "Posts a random image from MongoDB (Admin only)")]
         public async Task PostImage(InteractionContext ctx)
         {
