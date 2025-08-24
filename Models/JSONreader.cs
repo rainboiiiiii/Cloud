@@ -45,6 +45,7 @@ namespace TheCloud.config
         public string MONGO_URI { get; set; }
         public string MONGO_DB { get; set; }
         public string ImageChannelID { get; set; }
+        public ulong CloudsChannelID { get; set; }
         public ulong AnnouncementChannelID { get; set; }
         public ulong CloudWatcherRoleID { get; set; }
     }

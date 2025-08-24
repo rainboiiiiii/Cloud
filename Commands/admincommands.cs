@@ -254,10 +254,9 @@ namespace TheCloud.Commands
         {
             if (!IsAuthorized(ctx))
             {
-                await ctx.CreateResponseAsync(InteractionResponseType.ChannelMessageWithSource,
-                    new DiscordInteractionResponseBuilder()
-                        .WithContent("❌ You are not authorized to use this command.")
-                        .AsEphemeral());
+                await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder()
+                    .WithContent("❌ You are not authorized to use this command.")
+                    .AsEphemeral());
                 return;
             }
 
@@ -281,14 +280,23 @@ namespace TheCloud.Commands
                     .WithContent("Here’s a new image!")
                     .AddFile(fileName, stream);
 
+                // Send to first channel (current server)
                 await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder()
                     .WithContent("📤 Posting image...")
                     .AsEphemeral());
 
                 await ctx.Channel.SendMessageAsync(messageBuilder);
+
+                // Send to second channel (other server)
+                var secondChannel = await ctx.Client.GetChannelAsync(discordConfigData.CloudsChannelID);
+                await secondChannel.SendMessageAsync(new DiscordMessageBuilder()
+                    .WithContent("Here’s a new image!")
+                    .AddFile(fileName, stream));
+
                 stream.Dispose();
 
                 await BotLogger.LogImagePostAsync(fileName, true, ctx.Channel.Name);
+                await BotLogger.LogImagePostAsync(fileName, true, secondChannel.Name);
             }
             catch (Exception ex)
             {
