@@ -128,7 +128,7 @@ namespace TheCloud.Utilities
                 Process.Start(new ProcessStartInfo
                 {
                     FileName = "cmd.exe",
-                    Arguments = $"/c start dotnet \"{exePath}\"",
+                    Arguments = $"/c start \"Cloud Bot\" cmd /k dotnet \"{exePath}\"",
                     UseShellExecute = true,
                     WorkingDirectory = Path.GetDirectoryName(exePath),
                     WindowStyle = ProcessWindowStyle.Normal

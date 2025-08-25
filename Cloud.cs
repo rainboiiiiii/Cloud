@@ -143,14 +143,13 @@ namespace TheCloud
             }
 
             await Client.ConnectAsync();
+            await AnnounceStartupAsync(); // ✅ Add this here
             await Task.Delay(-1);
         }
 
-        
+
         public static async Task AnnounceStartupAsync()
         {
-
-            await AnnounceStartupAsync();
             var client = AdminCommands.GetClient();
             var config = AdminCommands.GetConfig();
 
