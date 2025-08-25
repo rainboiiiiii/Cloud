@@ -35,6 +35,8 @@ namespace TheCloud.Utilities
         {
             await BotLogger.LogEventAsync("🔄 GitManager: Starting git pull...");
 
+            await Task.Delay(2000); // Wait 2 seconds for file system to settle
+
             var pull = new ProcessStartInfo
             {
                 FileName = "git",
@@ -60,6 +62,8 @@ namespace TheCloud.Utilities
         public static async Task<bool> BuildProjectAsync()
         {
             await BotLogger.LogEventAsync("🔧 GitManager: Starting dotnet build...");
+
+            await Task.Delay(10000); // Wait 10 seconds for file system to settle
 
             var build = new ProcessStartInfo
             {
@@ -97,17 +101,23 @@ namespace TheCloud.Utilities
 
             try
             {
+                // ✅ Log the path being launched
+                await BotLogger.LogEventAsync($"🚀 Relaunching from: {exePath}");
+                Console.WriteLine($"🚀 Relaunching from: {exePath}");
+
+                // ✅ Launch in a new console window
                 Process.Start(new ProcessStartInfo
                 {
-                    FileName = "dotnet",
-                    Arguments = $"\"{exePath}\"",
+                    FileName = "cmd.exe",
+                    Arguments = $"/c start dotnet \"{exePath}\"",
                     UseShellExecute = true,
-                    WorkingDirectory = Path.GetDirectoryName(exePath)
+                    WorkingDirectory = Path.GetDirectoryName(exePath),
+                    WindowStyle = ProcessWindowStyle.Normal
                 });
 
                 await BotLogger.LogEventAsync($"✅ GitManager: Bot relaunched successfully. Version: {commitHash}");
 
-                // Auto-ping announcement channel
+                // ✅ Auto-ping announcement channel
                 var client = AdminCommands.GetClient();
                 var channel = await client.GetChannelAsync(config.AnnouncementChannelID);
                 await channel.SendMessageAsync($"✅ Cloud restarted successfully.\nVersion: `{commitHash}`");
