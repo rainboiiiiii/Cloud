@@ -39,75 +39,55 @@ namespace TheCloud.Utilities
             return hash.Trim();
         }
 
-        public static async Task<bool> PullLatestAsync()
+        public static async Task<bool> ForceSyncRepoAsync()
         {
-            await BotLogger.LogEventAsync("🔄 GitManager: Starting git pull...");
+            await BotLogger.LogEventAsync("🔄 GitManager: Starting force sync...");
 
-            // ✅ Step 1: Pre-pull diagnostics
-            var statusInfo = new ProcessStartInfo
+            var fetchInfo = new ProcessStartInfo
             {
                 FileName = "git",
-                Arguments = "status --short",
+                Arguments = "fetch --all",
                 WorkingDirectory = RepoPath,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false
             };
 
-            using (var statusProcess = Process.Start(statusInfo))
-            {
-                string statusOutput = await statusProcess.StandardOutput.ReadToEndAsync();
-                string statusError = await statusProcess.StandardError.ReadToEndAsync();
-                await statusProcess.WaitForExitAsync();
-
-                await BotLogger.LogEventAsync($"📋 GitManager: git status output:\n{statusOutput}");
-                if (!string.IsNullOrWhiteSpace(statusError))
-                    await BotLogger.LogEventAsync($"⚠️ GitManager: git status error:\n{statusError}");
-            }
-
-            // ✅ Step 2: Git pull with timeout
-            var pullInfo = new ProcessStartInfo
+            var resetInfo = new ProcessStartInfo
             {
                 FileName = "git",
-                Arguments = "pull --verbose --no-edit --no-rebase",
+                Arguments = "reset --hard origin/master",
                 WorkingDirectory = RepoPath,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false
             };
-
-            using var pullProcess = Process.Start(pullInfo);
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60)); // ⏱ 60-second timeout
 
             try
             {
-                // ✅ Read output first to avoid hanging if Git exits quickly
-                string pullOutput = await pullProcess.StandardOutput.ReadToEndAsync();
-                string pullError = await pullProcess.StandardError.ReadToEndAsync();
+                using var fetchProcess = Process.Start(fetchInfo);
+                string fetchOutput = await fetchProcess.StandardOutput.ReadToEndAsync();
+                string fetchError = await fetchProcess.StandardError.ReadToEndAsync();
+                await fetchProcess.WaitForExitAsync();
 
-                await pullProcess.WaitForExitAsync(cts.Token);
+                await BotLogger.LogEventAsync($"📥 Git fetch output:\n{fetchOutput}");
+                if (!string.IsNullOrWhiteSpace(fetchError))
+                    await BotLogger.LogEventAsync($"⚠️ Git fetch error:\n{fetchError}");
 
-                // ✅ Log output and error
-                if (!string.IsNullOrWhiteSpace(pullOutput))
-                    await BotLogger.LogEventAsync($"🔄 GitManager: git pull output:\n{pullOutput}");
-                else
-                    await BotLogger.LogEventAsync("🔄 GitManager: git pull completed with no output.");
+                using var resetProcess = Process.Start(resetInfo);
+                string resetOutput = await resetProcess.StandardOutput.ReadToEndAsync();
+                string resetError = await resetProcess.StandardError.ReadToEndAsync();
+                await resetProcess.WaitForExitAsync();
 
-                if (!string.IsNullOrWhiteSpace(pullError))
-                    await BotLogger.LogEventAsync($"⚠️ GitManager: git pull error:\n{pullError}");
+                await BotLogger.LogEventAsync($"🔁 Git reset output:\n{resetOutput}");
+                if (!string.IsNullOrWhiteSpace(resetError))
+                    await BotLogger.LogEventAsync($"⚠️ Git reset error:\n{resetError}");
 
-                await BotLogger.LogEventAsync($"🔚 GitManager: git pull exit code: {pullProcess.ExitCode}");
-
-                return pullProcess.ExitCode == 0;
-            }
-            catch (OperationCanceledException)
-            {
-                await BotLogger.LogEventAsync("⏱ GitManager: git pull timed out after 60 seconds.");
-                return false;
+                return resetProcess.ExitCode == 0;
             }
             catch (Exception ex)
             {
-                await BotLogger.LogEventAsync($"❌ GitManager: git pull failed: {ex.Message}");
+                await BotLogger.LogEventAsync($"❌ GitManager: Force sync failed: {ex.Message}");
                 return false;
             }
         }
@@ -154,11 +134,9 @@ namespace TheCloud.Utilities
 
             try
             {
-                // ✅ Log the path being launched
                 await BotLogger.LogEventAsync($"🚀 Relaunching from: {exePath}");
                 Console.WriteLine($"🚀 Relaunching from: {exePath}");
 
-                // ✅ Launch in a new console window
                 Process.Start(new ProcessStartInfo
                 {
                     FileName = "cmd.exe",
@@ -170,7 +148,6 @@ namespace TheCloud.Utilities
 
                 await BotLogger.LogEventAsync($"✅ GitManager: Bot relaunched successfully. Version: {commitHash}");
 
-                // ✅ Auto-ping announcement channel
                 var client = AdminCommands.GetClient();
                 var channel = await client.GetChannelAsync(config.AnnouncementChannelID);
                 await channel.SendMessageAsync($"✅ Cloud restarted successfully.\nVersion: `{commitHash}`");
