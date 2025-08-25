@@ -94,7 +94,6 @@ namespace TheCloud
             var slash = Client.UseSlashCommands();
             slash.RegisterCommands<AdminCommands>();
             slash.RegisterCommands<Testcommands>();
-            await Client.ConnectAsync();
             await BotLogger.LogEventAsync("✅ Slash commands registered: Testcommands");
 
             var commandsConfig = new CommandsNextConfiguration()
@@ -105,9 +104,9 @@ namespace TheCloud
                 EnableDefaultHelp = true
             };
 
-            
 
-            Client.Ready += async (sender, e) =>
+
+            await Client.ConnectAsync();
             {
                 await BotLogger.LogEventAsync("Bot is online and ready.");
                 await PostRandomImageAsync();
