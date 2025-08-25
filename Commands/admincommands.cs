@@ -125,37 +125,49 @@ namespace TheCloud.Commands
         public async Task SelfUpdateAsync(InteractionContext ctx)
         {
             await ctx.CreateResponseAsync("🔄 Starting self-update...");
-
             await BotLogger.LogEventAsync("🧪 SelfUpdate: Starting update flow...");
 
-            bool synced = await GitManager.ForceSyncRepoAsync();
-            if (!synced)
+            try
             {
-                await BotLogger.LogEventAsync("❌ SelfUpdate: Git sync failed.");
-                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("❌ Git sync failed."));
-                return;
+                bool synced = await GitManager.ForceSyncRepoAsync();
+                if (!synced)
+                {
+                    await BotLogger.LogEventAsync("❌ SelfUpdate: Git sync failed.");
+                    await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("❌ Git sync failed."));
+                    return;
+                }
+
+                string commitHash = await GitManager.GetLatestCommitHashAsync();
+                await BotLogger.LogEventAsync($"🧪 SelfUpdate: Latest commit = {commitHash}");
+
+                var (built, dllPath) = await GitManager.BuildProjectAsync();
+                await BotLogger.LogEventAsync($"🧪 SelfUpdate: Build result = {built}, dllPath = {dllPath}");
+
+                if (!built || string.IsNullOrEmpty(dllPath))
+                {
+                    await BotLogger.LogEventAsync("❌ SelfUpdate: Build failed.");
+                    await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("❌ Build failed."));
+                    return;
+                }
+
+                bool relaunched = await GitManager.RelaunchBotAsync(commitHash, dllPath);
+                await BotLogger.LogEventAsync($"🧪 SelfUpdate: Relaunch result = {relaunched}");
+
+                if (!relaunched)
+                {
+                    await BotLogger.LogEventAsync("❌ SelfUpdate: Relaunch failed.");
+                    await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("❌ Relaunch failed."));
+                    return;
+                }
+
+                await BotLogger.LogEventAsync("✅ SelfUpdate: Update complete.");
+                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("✅ Update complete. Relaunching..."));
             }
-
-            string commitHash = await GitManager.GetLatestCommitHashAsync();
-
-            var (built, dllPath) = await GitManager.BuildProjectAsync();
-            if (!built || string.IsNullOrEmpty(dllPath))
+            catch (Exception ex)
             {
-                await BotLogger.LogEventAsync("❌ SelfUpdate: Build failed.");
-                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("❌ Build failed."));
-                return;
+                await BotLogger.LogEventAsync($"❌ SelfUpdate: Exception occurred: {ex.Message}");
+                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("❌ Update crashed."));
             }
-
-            bool relaunched = await GitManager.RelaunchBotAsync(commitHash, dllPath);
-            if (!relaunched)
-            {
-                await BotLogger.LogEventAsync("❌ SelfUpdate: Relaunch failed.");
-                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("❌ Relaunch failed."));
-                return;
-            }
-
-            await BotLogger.LogEventAsync("✅ SelfUpdate: Update complete.");
-            await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("✅ Update complete. Relaunching..."));
         }
 
         [SlashCommand("status", "Check if a shutdown or restart is scheduled")]

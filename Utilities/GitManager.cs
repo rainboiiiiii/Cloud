@@ -69,19 +69,30 @@ namespace TheCloud.Utilities
             }
         }
 
-        // 🔨 Build project and publish to a new runtime folder
-        public static async Task<(bool Success, string RuntimeDllPath)> BuildProjectAsync()
+        
+           // 🔨 Build project and publish to a new runtime folder
+            public static async Task<(bool Success, string RuntimeDllPath)> BuildProjectAsync()
         {
             string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             string newRuntimePath = Path.Combine(RuntimeBasePath, $"CloudRun_{timestamp}");
+
+            // ✅ Create the folder first
+            Directory.CreateDirectory(newRuntimePath);
+            await BotLogger.LogEventAsync($"🔧 GitManager: Publishing to new runtime folder: {newRuntimePath}");
+
+            // ✅ Copy config.enc after folder exists
             string configPath = Path.Combine(RepoPath, "config.enc");
             string targetPath = Path.Combine(newRuntimePath, "config.enc");
 
             if (File.Exists(configPath))
+            {
                 File.Copy(configPath, targetPath, overwrite: true);
-
-            Directory.CreateDirectory(newRuntimePath);
-            await BotLogger.LogEventAsync($"🔧 GitManager: Publishing to new runtime folder: {newRuntimePath}");
+                await BotLogger.LogEventAsync($"📦 GitManager: Copied config.enc to runtime folder: {targetPath}");
+            }
+            else
+            {
+                await BotLogger.LogEventAsync($"⚠️ GitManager: config.enc not found at {configPath}");
+            }
 
             var build = new ProcessStartInfo
             {
