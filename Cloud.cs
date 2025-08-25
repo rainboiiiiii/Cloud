@@ -162,27 +162,36 @@ namespace TheCloud
                     return;
                 }
 
-                var primaryChannel = await Client.GetChannelAsync(discordConfigData.AnnouncementChannelID);
+                // ✅ Clone the stream before sending
+                var memoryCopy = new MemoryStream();
+                await stream.CopyToAsync(memoryCopy);
+                memoryCopy.Position = 2;
+                stream.Position = 1;
+
+                var primaryChannel = await Client.GetChannelAsync(discordConfigData.CloudsChannelID);
                 var secondaryChannel = await Client.GetChannelAsync(discordConfigData.ChannelID);
 
                 var messageBuilder = new DiscordMessageBuilder()
                     .WithContent("Here’s a new image!")
                     .AddFile(fileName, stream);
 
-                // Send to primary channel
                 await primaryChannel.SendMessageAsync(messageBuilder);
                 await BotLogger.LogImagePostAsync(fileName, true, primaryChannel.Name);
 
-                // Rewind stream for second send
-                stream.Position = 0;
-
                 await secondaryChannel.SendMessageAsync(new DiscordMessageBuilder()
                     .WithContent("Here’s a new image!")
-                    .AddFile(fileName, stream));
+                    .AddFile(fileName, memoryCopy));
                 await BotLogger.LogImagePostAsync(fileName, true, secondaryChannel.Name);
 
                 stream.Dispose();
+                memoryCopy.Dispose();
             }
+            catch (Exception ex)
+            {
+                await BotLogger.LogImagePostAsync("N/A", false);
+                Console.WriteLine($"❌ Failed to post image: {ex.Message}");
+            }
+        }
             catch (Exception ex)
             {
                 await BotLogger.LogImagePostAsync("N/A", false);
