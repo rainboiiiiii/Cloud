@@ -11,7 +11,7 @@ namespace TheCloud.Utilities
 {
     public static class GitManager
     {
-        private const string RepoPath = "C:\\Users\\user\\CloudLive";
+        private const string RepoPath = @"C:\Users\user\CloudLive";
         private static JSONStructure config => AdminCommands.GetConfig();
 
         public static async Task<string> GetLatestCommitHashAsync()
@@ -43,6 +43,14 @@ namespace TheCloud.Utilities
         {
             await BotLogger.LogEventAsync("🔄 GitManager: Starting force sync...");
 
+            // ✅ Validate that RepoPath is a Git repo
+            var gitFolder = Path.Combine(RepoPath, ".git");
+            if (!Directory.Exists(gitFolder))
+            {
+                await BotLogger.LogEventAsync($"❌ GitManager: .git folder not found at `{gitFolder}`. RepoPath may be incorrect.");
+                return false;
+            }
+
             var fetchInfo = new ProcessStartInfo
             {
                 FileName = "git",
@@ -65,21 +73,33 @@ namespace TheCloud.Utilities
 
             try
             {
+                // ✅ Log fetch command
+                await BotLogger.LogEventAsync($"🔧 Running: git {fetchInfo.Arguments} in {fetchInfo.WorkingDirectory}");
                 using var fetchProcess = Process.Start(fetchInfo);
                 string fetchOutput = await fetchProcess.StandardOutput.ReadToEndAsync();
                 string fetchError = await fetchProcess.StandardError.ReadToEndAsync();
                 await fetchProcess.WaitForExitAsync();
 
-                await BotLogger.LogEventAsync($"📥 Git fetch output:\n{fetchOutput}");
+                if (string.IsNullOrWhiteSpace(fetchOutput))
+                    await BotLogger.LogEventAsync("⚠️ GitManager: git fetch completed with no output.");
+                else
+                    await BotLogger.LogEventAsync($"📥 Git fetch output:\n{fetchOutput}");
+
                 if (!string.IsNullOrWhiteSpace(fetchError))
                     await BotLogger.LogEventAsync($"⚠️ Git fetch error:\n{fetchError}");
 
+                // ✅ Log reset command
+                await BotLogger.LogEventAsync($"🔧 Running: git {resetInfo.Arguments} in {resetInfo.WorkingDirectory}");
                 using var resetProcess = Process.Start(resetInfo);
                 string resetOutput = await resetProcess.StandardOutput.ReadToEndAsync();
                 string resetError = await resetProcess.StandardError.ReadToEndAsync();
                 await resetProcess.WaitForExitAsync();
 
-                await BotLogger.LogEventAsync($"🔁 Git reset output:\n{resetOutput}");
+                if (string.IsNullOrWhiteSpace(resetOutput))
+                    await BotLogger.LogEventAsync("⚠️ GitManager: git reset completed with no output.");
+                else
+                    await BotLogger.LogEventAsync($"🔁 Git reset output:\n{resetOutput}");
+
                 if (!string.IsNullOrWhiteSpace(resetError))
                     await BotLogger.LogEventAsync($"⚠️ Git reset error:\n{resetError}");
 
