@@ -37,7 +37,7 @@ namespace TheCloud.Utilities
             var reset = new ProcessStartInfo
             {
                 FileName = "git",
-                Arguments = "reset --hard origin/main",
+                Arguments = "reset --hard origin/master",
                 WorkingDirectory = RepoPath,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
