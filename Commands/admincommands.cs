@@ -120,90 +120,10 @@ namespace TheCloud.Commands
             Environment.Exit(0);
         }
 
-        [SlashCommand("restart", "Admin-only command to restart the bot")]
-        public async Task Restart(InteractionContext ctx,
-     [Option("hours", "Hours until restart")] long hours = 0,
-     [Option("minutes", "Minutes until restart")] long minutes = 0,
-     [Option("seconds", "Seconds until restart")] long seconds = 0,
-     [Option("instant", "Restart immediately")] bool instant = false)
-        {
-            if (!IsAuthorized(ctx))
-            {
-                await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder()
-                    .WithContent("❌ You are not authorized to use this command.")
-                    .AsEphemeral());
-                return;
-            }
-
-            var totalDelay = TimeSpan.FromHours(hours) + TimeSpan.FromMinutes(minutes) + TimeSpan.FromSeconds(seconds);
-            if (instant) totalDelay = TimeSpan.Zero;
-
-            if (totalDelay.TotalSeconds <= 0 && !instant)
-            {
-                await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder()
-                    .WithContent("❌ Please specify a delay greater than 0 or use instant.")
-                    .AsEphemeral());
-                return;
-            }
-
-            File.WriteAllText("restart.flag", totalDelay.TotalSeconds.ToString());
-            await BotLogger.LogCommandAsync("restart", ctx.User.Username, ctx.User.Id);
-
-            var restartTime = DateTime.UtcNow.Add(totalDelay);
-            await AnnounceAsync(ctx, "Restarting", totalDelay, restartTime);
-
-            string delayMessage = instant
-                ? "⏱ Restarting immediately..."
-                : $"✅ Restart scheduled in {totalDelay.TotalSeconds:F0} second(s). Announcement sent.";
-
-            await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder()
-                .WithContent(delayMessage)
-                .AsEphemeral());
-
-            await BotLogger.LogEventAsync($"Restart scheduled for {restartTime:u}");
-
-            await Task.Delay(totalDelay);
-
-            // Git-aware restart logic
-            bool pulled = await GitManager.ForceSyncRepoAsync();
-            if (!pulled)
-            {
-                await BotLogger.LogEventAsync("❌ GitManager: Pull failed. Aborting restart.");
-                await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder()
-                    .WithContent("❌ Git pull failed. Restart aborted.")
-                    .AsEphemeral());
-                return;
-            }
-
-            bool built = await GitManager.BuildProjectAsync();
-            if (!built)
-            {
-                await BotLogger.LogEventAsync("❌ GitManager: Build failed. Aborting restart.");
-                await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder()
-                    .WithContent("❌ Build failed. Restart aborted.")
-                    .AsEphemeral());
-                return;
-            }
-
-            string commitHash = await GitManager.GetLatestCommitHashAsync();
-            bool relaunched = await GitManager.RelaunchBotAsync(commitHash);
-
-            if (!relaunched)
-            {
-                await BotLogger.LogEventAsync("❌ GitManager: Relaunch failed.");
-                await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder()
-                    .WithContent("❌ Relaunch failed. Check logs for details.")
-                    .AsEphemeral());
-                return;
-            }
-
-            Environment.Exit(0);
-        }
-
+        
         [SlashCommand("selfupdate", "Pull latest code, build, and relaunch the bot")]
         public async Task SelfUpdateAsync(InteractionContext ctx)
         {
-            // ✅ Permission check using full context
             if (!IsAuthorized(ctx))
             {
                 await ctx.CreateResponseAsync("❌ You don't have permission to run this command.", true);
@@ -219,8 +139,9 @@ namespace TheCloud.Commands
                 return;
             }
 
-            bool built = await GitManager.BuildProjectAsync();
-            if (!built)
+            // ✅ Unpack tuple result
+            var (built, tempDllPath) = await GitManager.BuildProjectAsync();
+            if (!built || string.IsNullOrWhiteSpace(tempDllPath))
             {
                 await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("❌ Build failed."));
                 return;
@@ -228,7 +149,8 @@ namespace TheCloud.Commands
 
             string hash = await GitManager.GetLatestCommitHashAsync();
 
-            bool relaunched = await GitManager.RelaunchBotAsync(hash);
+            // ✅ Pass both arguments
+            bool relaunched = await GitManager.RelaunchBotAsync(hash, tempDllPath);
             if (!relaunched)
             {
                 await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("❌ Relaunch failed."));

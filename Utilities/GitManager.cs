@@ -114,11 +114,11 @@ namespace TheCloud.Utilities
             }
         }
 
-        public static async Task<bool> BuildProjectAsync()
+        public static async Task<(bool Success, string TempDllPath)> BuildProjectAsync()
         {
             await BotLogger.LogEventAsync("🔧 GitManager: Starting dotnet build...");
 
-            await Task.Delay(10000); // Wait 10 seconds for file system to settle
+            await Task.Delay(10000); // Wait for file system to settle
 
             var build = new ProcessStartInfo
             {
@@ -139,14 +139,32 @@ namespace TheCloud.Utilities
             if (!string.IsNullOrWhiteSpace(error))
                 await BotLogger.LogEventAsync($"⚠️ GitManager: build error:\n{error}");
 
-            return process.ExitCode == 0;
+            if (process.ExitCode != 0)
+                return (false, null);
+
+            // ✅ Create unique temp folder
+            string tempFolder = Path.Combine(@"C:\Users\user\CloudTemp", $"Build_{DateTime.UtcNow:yyyyMMdd_HHmmss}");
+            Directory.CreateDirectory(tempFolder);
+
+            string sourceDll = Path.Combine(RepoPath, "bin", "Release", "net9.0", "TheCloud.dll");
+            string tempDll = Path.Combine(tempFolder, "TheCloud.dll");
+
+            try
+            {
+                File.Copy(sourceDll, tempDll, overwrite: true);
+                await BotLogger.LogEventAsync($"📦 GitManager: Copied .dll to temp folder: {tempDll}");
+                return (true, tempDll);
+            }
+            catch (Exception ex)
+            {
+                await BotLogger.LogEventAsync($"❌ GitManager: Failed to copy .dll to temp folder: {ex.Message}");
+                return (false, null);
+            }
         }
 
-        public static async Task<bool> RelaunchBotAsync(string commitHash)
+        public static async Task<bool> RelaunchBotAsync(string commitHash, string exePath)
         {
             await BotLogger.LogEventAsync("🚀 GitManager: Attempting to relaunch bot...");
-
-            string exePath = Path.Combine(RepoPath, "bin", "Release", "net9.0", "TheCloud.dll");
 
             if (!File.Exists(exePath))
             {
