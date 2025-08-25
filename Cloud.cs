@@ -109,6 +109,10 @@ namespace TheCloud
                 await PostRandomImageAsync();
             };
 
+            // ✅ Hook up your custom listener
+            var handler = new MessageHandler();
+            Client.MessageCreated += handler.OnMessageCreated;
+
             Client.MessageCreated += async (client, e) =>
             {
                 if (e.Author.IsBot) return;
