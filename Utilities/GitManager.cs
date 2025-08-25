@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using TheCloud.Commands;
 using TheCloud.config;
@@ -42,28 +43,67 @@ namespace TheCloud.Utilities
         {
             await BotLogger.LogEventAsync("🔄 GitManager: Starting git pull...");
 
-            await Task.Delay(2000); // Wait 2 seconds for file system to settle
-
-            var pull = new ProcessStartInfo
+            // ✅ Step 1: Pre-pull diagnostics
+            var statusInfo = new ProcessStartInfo
             {
                 FileName = "git",
-                Arguments = "pull",
+                Arguments = "status --short",
                 WorkingDirectory = RepoPath,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false
             };
 
-            using var process = Process.Start(pull);
-            string output = await process.StandardOutput.ReadToEndAsync();
-            string error = await process.StandardError.ReadToEndAsync();
-            process.WaitForExit();
+            using (var statusProcess = Process.Start(statusInfo))
+            {
+                string statusOutput = await statusProcess.StandardOutput.ReadToEndAsync();
+                string statusError = await statusProcess.StandardError.ReadToEndAsync();
+                await statusProcess.WaitForExitAsync();
 
-            await BotLogger.LogEventAsync($"🔄 GitManager: git pull output:\n{output}");
-            if (!string.IsNullOrWhiteSpace(error))
-                await BotLogger.LogEventAsync($"⚠️ GitManager: git pull error:\n{error}");
+                await BotLogger.LogEventAsync($"📋 GitManager: git status output:\n{statusOutput}");
+                if (!string.IsNullOrWhiteSpace(statusError))
+                    await BotLogger.LogEventAsync($"⚠️ GitManager: git status error:\n{statusError}");
+            }
 
-            return process.ExitCode == 0;
+            // ✅ Step 2: Git pull with timeout
+            var pullInfo = new ProcessStartInfo
+            {
+                FileName = "git",
+                Arguments = "pull --verbose --no-edit --no-rebase",
+                WorkingDirectory = RepoPath,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false
+            };
+
+            using var pullProcess = Process.Start(pullInfo);
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60)); // ⏱ 60-second timeout
+
+            try
+            {
+                await pullProcess.WaitForExitAsync(cts.Token);
+
+                string pullOutput = await pullProcess.StandardOutput.ReadToEndAsync();
+                string pullError = await pullProcess.StandardError.ReadToEndAsync();
+
+                await BotLogger.LogEventAsync($"🔄 GitManager: git pull output:\n{pullOutput}");
+                if (!string.IsNullOrWhiteSpace(pullError))
+                    await BotLogger.LogEventAsync($"⚠️ GitManager: git pull error:\n{pullError}");
+
+                await BotLogger.LogEventAsync($"🔚 GitManager: git pull exit code: {pullProcess.ExitCode}");
+
+                return pullProcess.ExitCode == 0;
+            }
+            catch (OperationCanceledException)
+            {
+                await BotLogger.LogEventAsync("⏱ GitManager: git pull timed out after 60 seconds.");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                await BotLogger.LogEventAsync($"❌ GitManager: git pull failed: {ex.Message}");
+                return false;
+            }
         }
 
         public static async Task<bool> BuildProjectAsync()
