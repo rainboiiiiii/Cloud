@@ -92,22 +92,19 @@ namespace TheCloud.Commands
             await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder().AddEmbed(embed));
         }
 
-        // ✅ Public help command — accessible to all users
         [SlashCommand("help", "Provides a list of available commands/responses available")]
         public async Task HelpCommand(InteractionContext ctx)
         {
-            var embed = new DiscordEmbedBuilder
-            {
-                Title = "Cloud Help",
-                Description = "Here are the commands and responses you can use with me:",
-                Color = DiscordColor.Azure
-            };
-            embed.AddField("/info", "Provides information about Cloud", false);
-            embed.AddField("/help", "Provides a list of available commands/responses available", false);
-            embed.AddField("Greetings", "Say 'hey cloud' or 'hello cloud' to get a friendly greeting!", false);
-            embed.AddField("Purple Moogle", "Mention 'Purple Moogle' to hear my thoughts about him!", false);
-            embed.AddField("General Chat", "Chat with Cloud by asking how I'm doing!", false);
-            embed.WithFooter("Thank you for using Cloud!");
+            var embed = new DiscordEmbedBuilder()
+                .WithTitle("Cloud Help")
+                .WithDescription("Here are the commands and responses you can use with me:")
+                .WithColor(DiscordColor.Azure)
+                .AddField("/info", "Provides information about Cloud", false)
+                .AddField("/help", "Provides a list of available commands/responses available", false)
+                .AddField("Greetings", "Say 'hey cloud' or 'hello cloud' to get a friendly greeting!", false)
+                .AddField("Purple Moogle", "Mention 'Purple Moogle' to hear my thoughts about him!", false)
+                .AddField("General Chat", "Chat with Cloud by asking how I'm doing!", false)
+                .WithFooter("Thank you for using Cloud!");
 
             await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder().AddEmbed(embed));
         }
