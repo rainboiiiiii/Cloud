@@ -7,15 +7,6 @@ using TheCloud.Commands;
 using TheCloud.config;
 using TheCloud.Logging;
 
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using TheCloud.Commands;
-using TheCloud.config;
-using TheCloud.Logging;
-
 namespace TheCloud.Utilities
 {
     public static class GitManager
@@ -82,8 +73,9 @@ namespace TheCloud.Utilities
         public static async Task<(bool Success, string RuntimeDllPath)> BuildProjectAsync()
         {
             string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-            string newRuntimePath = Path.Combine(@"C:\Users\user", $"CloudRun_{timestamp}");
+            string newRuntimePath = Path.Combine(RuntimeBasePath, $"CloudRun_{timestamp}");
 
+            Directory.CreateDirectory(newRuntimePath);
             await BotLogger.LogEventAsync($"🔧 GitManager: Publishing to new runtime folder: {newRuntimePath}");
 
             var build = new ProcessStartInfo
@@ -163,9 +155,7 @@ namespace TheCloud.Utilities
                     await BotLogger.LogEventAsync($"⚠️ GitManager: Failed to send restart message: {ex.Message}");
                 }
 
-                // ✅ Optional cleanup
                 CleanupOldRuntimes(RuntimeBasePath, keepLatest: 3);
-
                 return true;
             }
             catch (Exception ex)
