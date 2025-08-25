@@ -165,7 +165,7 @@ namespace TheCloud.Commands
             await Task.Delay(totalDelay);
 
             // Git-aware restart logic
-            bool pulled = await GitManager.PullLatestAsync();
+            bool pulled = await GitManager.ForceSyncRepoAsync();
             if (!pulled)
             {
                 await BotLogger.LogEventAsync("❌ GitManager: Pull failed. Aborting restart.");
