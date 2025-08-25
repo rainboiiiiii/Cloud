@@ -10,7 +10,7 @@ namespace TheCloud.Utilities
 {
     public static class GitManager
     {
-        private const string RepoPath = "CloudBot";
+        private const string RepoPath = "C:\\Users\\user\\CloudLive";
         private static JSONStructure config => AdminCommands.GetConfig();
 
         public static async Task<string> GetLatestCommitHashAsync()
@@ -21,12 +21,19 @@ namespace TheCloud.Utilities
                 Arguments = "rev-parse HEAD",
                 WorkingDirectory = RepoPath,
                 RedirectStandardOutput = true,
+                RedirectStandardError = true,
                 UseShellExecute = false
             };
 
             using var process = Process.Start(info);
             string hash = await process.StandardOutput.ReadToEndAsync();
-            process.WaitForExit();
+            string error = await process.StandardError.ReadToEndAsync();
+            await process.WaitForExitAsync();
+
+            if (!string.IsNullOrWhiteSpace(error))
+                await BotLogger.LogEventAsync($"⚠️ GitManager: rev-parse error:\n{error}");
+
+            await BotLogger.LogEventAsync($"🔍 GitManager: Current commit hash: {hash.Trim()}");
 
             return hash.Trim();
         }
