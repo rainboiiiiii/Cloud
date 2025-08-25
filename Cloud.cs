@@ -92,7 +92,7 @@ namespace TheCloud
             AdminCommands.SetConfig(discordConfigData);
 
             var slash = Client.UseSlashCommands();
-            slash.RegisterCommands<AdminCommands>();
+            slash.RegisterCommands<AdminCommands>(1139654090763276378);
             slash.RegisterCommands<Testcommands>();
             await BotLogger.LogEventAsync("✅ Slash commands registered: Testcommands");
 
