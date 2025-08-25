@@ -77,7 +77,7 @@ namespace TheCloud.Utilities
             var build = new ProcessStartInfo
             {
                 FileName = "dotnet",
-                Arguments = "build -c Release",
+                Arguments = $"publish -c Release -o \"{RuntimePath}\"",
                 WorkingDirectory = RepoPath,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
