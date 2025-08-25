@@ -120,49 +120,11 @@ namespace TheCloud.Commands
             Environment.Exit(0);
         }
 
-        
+
         [SlashCommand("selfupdate", "Pull latest code, build, and relaunch the bot")]
         public async Task SelfUpdateAsync(InteractionContext ctx)
         {
-            if (!IsAuthorized(ctx))
-            {
-                await ctx.CreateResponseAsync("❌ You don't have permission to run this command.", true);
-                return;
-            }
-
-            await ctx.CreateResponseAsync("🔄 Cloud is updating...");
-
-            bool pulled = await GitManager.ForceSyncRepoAsync();
-            if (!pulled)
-            {
-                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("❌ Git pull failed."));
-                return;
-            }
-
-            // ✅ Unpack tuple result
-            var (built, tempDllPath) = await GitManager.BuildProjectAsync();
-            if (!built || string.IsNullOrWhiteSpace(tempDllPath))
-            {
-                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("❌ Build failed."));
-                return;
-            }
-
-            string hash = await GitManager.GetLatestCommitHashAsync();
-
-            // ✅ Pass both arguments
-            bool relaunched = await GitManager.RelaunchBotAsync(hash, tempDllPath);
-            if (!relaunched)
-            {
-                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("❌ Relaunch failed."));
-                return;
-            }
-
-            await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("✅ Cloud is restarting..."));
-        }
-
-        [SlashCommand("cancel", "Cancel any scheduled shutdown or restart")]
-        public async Task Cancel(InteractionContext ctx)
-        {
+            // ✅ Match shutdown/cancel permission style
             if (!IsAuthorized(ctx))
             {
                 await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder()
@@ -171,26 +133,38 @@ namespace TheCloud.Commands
                 return;
             }
 
-            bool shutdownExists = File.Exists("shutdown.flag");
-            bool restartExists = File.Exists("restart.flag");
+            await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder()
+                .WithContent("🔄 Cloud is updating...")
+                .AsEphemeral());
 
-            if (!shutdownExists && !restartExists)
+            bool pulled = await GitManager.ForceSyncRepoAsync();
+            if (!pulled)
             {
-                await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder()
-                    .WithContent("⚠️ No scheduled shutdown or restart found.")
-                    .AsEphemeral());
+                await ctx.EditResponseAsync(new DiscordWebhookBuilder()
+                    .WithContent("❌ Git pull failed."));
                 return;
             }
 
-            if (shutdownExists) File.Delete("shutdown.flag");
-            if (restartExists) File.Delete("restart.flag");
+            var (built, tempDllPath) = await GitManager.BuildProjectAsync();
+            if (!built || string.IsNullOrWhiteSpace(tempDllPath))
+            {
+                await ctx.EditResponseAsync(new DiscordWebhookBuilder()
+                    .WithContent("❌ Build failed."));
+                return;
+            }
 
-            await AnnounceCancelAsync(ctx);
-            await BotLogger.LogEventAsync("Scheduled shutdown/restart canceled.");
+            string hash = await GitManager.GetLatestCommitHashAsync();
 
-            await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder()
-                .WithContent("✅ Scheduled shutdown/restart canceled. Announcement sent.")
-                .AsEphemeral());
+            bool relaunched = await GitManager.RelaunchBotAsync(hash, tempDllPath);
+            if (!relaunched)
+            {
+                await ctx.EditResponseAsync(new DiscordWebhookBuilder()
+                    .WithContent("❌ Relaunch failed."));
+                return;
+            }
+
+            await ctx.EditResponseAsync(new DiscordWebhookBuilder()
+                .WithContent("✅ Cloud is restarting..."));
         }
 
         [SlashCommand("status", "Check if a shutdown or restart is scheduled")]

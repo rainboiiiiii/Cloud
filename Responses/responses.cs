@@ -59,7 +59,8 @@ namespace TheCloud.Listener
             $"Purple Moogle is the human equivalent of a participation trophy.",
             $"Purple Moogle's favorite exercise is running away from responsibilities.",
             $"Purple Moogle is the CEO of awkward situations.",
-        
+            $"The only thing purple about Purple Moogle is his mood swings.",
+
 
 
         };
