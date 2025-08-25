@@ -5,6 +5,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using TheCloud.Commands;
 using TheCloud.config;
@@ -154,7 +155,6 @@ namespace TheCloud
 
             try
             {
-                // ✅ Use byte array instead of stream
                 var (imageBytes, fileName) = await _mongoImages.GetRandomImageBytesAsync();
                 if (imageBytes == null || string.IsNullOrEmpty(fileName))
                 {
@@ -166,17 +166,21 @@ namespace TheCloud
                 var primaryChannel = await Client.GetChannelAsync(discordConfigData.CloudsChannelID);
                 var secondaryChannel = await Client.GetChannelAsync(discordConfigData.ChannelID);
 
+                // ✅ Create two fully independent streams
+                using var stream1 = new MemoryStream(imageBytes.ToArray()); // clone for safety
+                using var stream2 = new MemoryStream(imageBytes.ToArray());
+
                 // ✅ Send to primary channel
                 await primaryChannel.SendMessageAsync(new DiscordMessageBuilder()
                     .WithContent("Here’s a new image!")
-                    .AddFile(fileName, new MemoryStream(imageBytes)));
+                    .AddFile(fileName, stream1));
 
                 await BotLogger.LogImagePostAsync(fileName, true, primaryChannel.Name);
 
-                // ✅ Send to secondary channel with a fresh stream
+                // ✅ Send to secondary channel
                 await secondaryChannel.SendMessageAsync(new DiscordMessageBuilder()
                     .WithContent("Here’s a new image!")
-                    .AddFile(fileName, new MemoryStream(imageBytes)));
+                    .AddFile(fileName, stream2));
 
                 await BotLogger.LogImagePostAsync(fileName, true, secondaryChannel.Name);
             }
