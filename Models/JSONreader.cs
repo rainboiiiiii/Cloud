@@ -16,8 +16,16 @@ namespace TheCloud.config
     {
         public string token { get; set; }
         public string prefix { get; set; }
-        public string ChannelId { get; set; }
+
+        public string MONGO_DB { get; set; }
         public ulong ChannelID { get; private set; }
+
+        public ulong CloudWatcherRoleID { get; set; }
+        public ulong CloudsChannelID { get; set; }
+        public string ImageChannelID { get; set; }
+        public ulong AnnouncementChannelID { get; set; }
+
+
 
         public string MONGO_URI { get; set; }
 
@@ -32,7 +40,12 @@ namespace TheCloud.config
                 this.prefix = data.prefix;
                 this.MONGO_URI = data.MONGO_URI;
                 this.ChannelID = data.ChannelID;
-                
+                this.MONGO_DB = data.MONGO_DB;
+                this.ImageChannelID = data.ImageChannelID;
+                this.CloudsChannelID = data.CloudsChannelID;
+                this.AnnouncementChannelID = data.AnnouncementChannelID;
+                this.CloudWatcherRoleID = data.CloudWatcherRoleID;
+
 
             }
         }
