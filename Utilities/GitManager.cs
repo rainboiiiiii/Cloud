@@ -82,7 +82,7 @@ namespace TheCloud.Utilities
         public static async Task<(bool Success, string RuntimeDllPath)> BuildProjectAsync()
         {
             string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-            string newRuntimePath = Path.Combine(RuntimeBasePath, $"CloudRun_{timestamp}");
+            string newRuntimePath = Path.Combine(@"C:\Users\user", $"CloudRun_{timestamp}");
 
             await BotLogger.LogEventAsync($"🔧 GitManager: Publishing to new runtime folder: {newRuntimePath}");
 
