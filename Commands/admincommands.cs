@@ -126,9 +126,12 @@ namespace TheCloud.Commands
         {
             await ctx.CreateResponseAsync("🔄 Starting self-update...");
 
+            await BotLogger.LogEventAsync("🧪 SelfUpdate: Starting update flow...");
+
             bool synced = await GitManager.ForceSyncRepoAsync();
             if (!synced)
             {
+                await BotLogger.LogEventAsync("❌ SelfUpdate: Git sync failed.");
                 await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("❌ Git sync failed."));
                 return;
             }
@@ -138,6 +141,7 @@ namespace TheCloud.Commands
             var (built, dllPath) = await GitManager.BuildProjectAsync();
             if (!built || string.IsNullOrEmpty(dllPath))
             {
+                await BotLogger.LogEventAsync("❌ SelfUpdate: Build failed.");
                 await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("❌ Build failed."));
                 return;
             }
@@ -145,10 +149,12 @@ namespace TheCloud.Commands
             bool relaunched = await GitManager.RelaunchBotAsync(commitHash, dllPath);
             if (!relaunched)
             {
+                await BotLogger.LogEventAsync("❌ SelfUpdate: Relaunch failed.");
                 await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("❌ Relaunch failed."));
                 return;
             }
 
+            await BotLogger.LogEventAsync("✅ SelfUpdate: Update complete.");
             await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("✅ Update complete. Relaunching..."));
         }
 
