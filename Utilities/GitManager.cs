@@ -146,7 +146,7 @@ namespace TheCloud.Utilities
             string tempFolder = Path.Combine(@"C:\Users\user\CloudTemp", $"Build_{DateTime.UtcNow:yyyyMMdd_HHmmss}");
             Directory.CreateDirectory(tempFolder);
 
-            string sourceDll = Path.Combine(RepoPath, "bin", "Release", "net9.0", "TheCloud.dll");
+            string sourceDll = Path.Combine(RepoPath, "bin", "Release", "net9.0-windows7.0", "TheCloud.dll");
             string tempDll = Path.Combine(tempFolder, "TheCloud.dll");
 
             try
