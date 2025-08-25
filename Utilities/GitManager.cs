@@ -12,12 +12,9 @@ namespace TheCloud.Utilities
     public static class GitManager
     {
         public static string RepoPath = @"C:\Users\user\CloudLive";
-        public static string RuntimePath = @"C:\Users\user\CloudRuntime";
+        public static string RuntimePath = @"C:\Users\user\CloudRun";
 
         private static JSONStructure config => AdminCommands.GetConfig();
-
-        // Store the last launched process so we can kill it on update
-        private static Process _runningBotProcess;
 
         // 🔄 Force sync repo
         public static async Task<bool> ForceSyncRepoAsync()
@@ -34,7 +31,6 @@ namespace TheCloud.Utilities
                 UseShellExecute = false
             };
 
-            // ✅ Define your branch name here
             string defaultBranch = "master";
 
             var reset = new ProcessStartInfo
@@ -46,20 +42,23 @@ namespace TheCloud.Utilities
                 RedirectStandardError = true,
                 UseShellExecute = false
             };
+
             try
             {
                 using var fetchProcess = Process.Start(fetch);
-                await fetchProcess.StandardOutput.ReadToEndAsync();
-                await fetchProcess.StandardError.ReadToEndAsync();
+                string fetchOut = await fetchProcess.StandardOutput.ReadToEndAsync();
+                string fetchErr = await fetchProcess.StandardError.ReadToEndAsync();
                 fetchProcess.WaitForExit();
 
                 using var resetProcess = Process.Start(reset);
-                await resetProcess.StandardOutput.ReadToEndAsync();
-                await resetProcess.StandardError.ReadToEndAsync();
+                string resetOut = await resetProcess.StandardOutput.ReadToEndAsync();
+                string resetErr = await resetProcess.StandardError.ReadToEndAsync();
                 resetProcess.WaitForExit();
 
                 await BotLogger.LogEventAsync($"📤 GitManager: fetch exit code = {fetchProcess.ExitCode}");
                 await BotLogger.LogEventAsync($"📤 GitManager: reset exit code = {resetProcess.ExitCode}");
+                await BotLogger.LogEventAsync($"📤 GitManager: reset stdout:\n{resetOut}");
+                await BotLogger.LogEventAsync($"📤 GitManager: reset stderr:\n{resetErr}");
 
                 return resetProcess.ExitCode == 0;
             }
@@ -70,7 +69,7 @@ namespace TheCloud.Utilities
             }
         }
 
-        // 🔨 Build project and copy to temp
+        // 🔨 Build project and copy to runtime
         public static async Task<(bool Success, string RuntimeDllPath)> BuildProjectAsync()
         {
             await BotLogger.LogEventAsync("🔧 GitManager: Starting dotnet build...");
@@ -97,16 +96,31 @@ namespace TheCloud.Utilities
             if (process.ExitCode != 0)
                 return (false, null);
 
-            // ✅ Copy built .dll to CloudRun
             try
             {
                 string sourceDll = Path.Combine(RepoPath, "bin", "Release", "net9.0-windows7.0", "TheCloud.dll");
-                string targetDll = Path.Combine(RuntimePath, "bin", "Release", "net9.0-windows7.0", "TheCloud.dll");
+                string targetDll = Path.Combine(RuntimePath, "TheCloud.dll");
 
                 Directory.CreateDirectory(RuntimePath);
-                File.Copy(sourceDll, targetDll, overwrite: true);
 
+                // ✅ Ensure bot is not running from targetDll
+                if (File.Exists(targetDll))
+                {
+                    try
+                    {
+                        File.Delete(targetDll);
+                        await BotLogger.LogEventAsync("🧹 GitManager: Deleted old runtime .dll before copy.");
+                    }
+                    catch (Exception ex)
+                    {
+                        await BotLogger.LogEventAsync($"❌ GitManager: Failed to delete locked .dll: {ex.Message}");
+                        return (false, null);
+                    }
+                }
+
+                File.Copy(sourceDll, targetDll, overwrite: true);
                 await BotLogger.LogEventAsync($"📦 GitManager: Copied .dll to runtime folder: {targetDll}");
+
                 return (true, targetDll);
             }
             catch (Exception ex)
@@ -141,7 +155,7 @@ namespace TheCloud.Utilities
                 await BotLogger.LogEventAsync($"✅ GitManager: Bot relaunched successfully. Version: {commitHash}");
 
                 var client = AdminCommands.GetClient();
-                var channel = await client.GetChannelAsync(AdminCommands.GetConfig().AnnouncementChannelID);
+                var channel = await client.GetChannelAsync(config.AnnouncementChannelID);
                 await channel.SendMessageAsync($"✅ Cloud restarted successfully.\nVersion: `{commitHash}`");
 
                 return true;
@@ -153,7 +167,8 @@ namespace TheCloud.Utilities
             }
         }
 
-            public static async Task<string> GetLatestCommitHashAsync()
+        // 🔍 Get latest commit hash
+        public static async Task<string> GetLatestCommitHashAsync()
         {
             var hashCmd = new ProcessStartInfo
             {
