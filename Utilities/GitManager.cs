@@ -96,7 +96,7 @@ namespace TheCloud.Utilities
             try
             {
                 string sourceDll = Path.Combine(RepoPath, "bin", "Release", "net9.0-windows7.0", "TheCloud.dll");
-                string targetDll = Path.Combine(RuntimePath, "TheCloud.dll");
+                string targetDll = Path.Combine(RuntimePath, "bin", "Release", "net9.0-windows7.0", "TheCloud.dll");
 
                 Directory.CreateDirectory(RuntimePath);
                 File.Copy(sourceDll, targetDll, overwrite: true);
