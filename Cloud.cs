@@ -109,9 +109,6 @@ namespace TheCloud
             {
                 await BotLogger.LogEventAsync("Bot is online and ready.");
                 await PostRandomImageAsync();
-                await AnnounceStartupAsync(); // ✅ Moved here
-                await Client.ConnectAsync();
-                await Task.Delay(-1);
             };
 
             // ✅ Hook up your custom listener
