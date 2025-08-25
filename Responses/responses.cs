@@ -42,10 +42,8 @@ namespace TheCloud.Listener
         public static List<string> PurpleMoogleResponses(string username) => new()
         {
             $"Purple Moogle is a cunt.",
-            $"Did someone summon the Purple Moogle? Absolutely not...",
             $"Purple Moogle is smelly.",
             $"If anyone was the Dad of phobias, it'd be PurpleMoogle.",
-            $"Feeling magical today, especially since PurpleMoogle ain't here!",
             $"Purple Moogle? More like Purple No-go!",
             $"Purple Moogle is a legend in his own mind!",
             $"I heard Purple Moogle tried to join a circus once... they said no.",
