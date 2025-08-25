@@ -56,7 +56,6 @@ namespace TheCloud.Database
 
                 try
                 {
-                    // Check for duplicates
                     var existing = await _bucket.Find(Builders<GridFSFileInfo>.Filter.Eq(x => x.Filename, fileName)).FirstOrDefaultAsync();
                     if (existing != null)
                     {
@@ -80,7 +79,35 @@ namespace TheCloud.Database
             return $"✅ Uploaded `{uploaded}` images. ⚠️ Skipped `{skipped}`. ❌ Failed `{failed}`.";
         }
 
-        // Get a random image from GridFS
+        // Get a random image as a byte array for safe multi-stream use
+        public async Task<(byte[] ImageBytes, string FileName)> GetRandomImageBytesAsync()
+        {
+            try
+            {
+                var files = await _bucket.Find(Builders<GridFSFileInfo>.Filter.Empty).ToListAsync();
+                if (files.Count == 0)
+                {
+                    Console.WriteLine("⚠️ No images found in GridFS.");
+                    return (null, null);
+                }
+
+                var rand = new Random();
+                var chosen = files[rand.Next(files.Count)];
+
+                using var stream = await _bucket.OpenDownloadStreamAsync(chosen.Id);
+                using var memoryStream = new MemoryStream();
+                await stream.CopyToAsync(memoryStream);
+
+                return (memoryStream.ToArray(), chosen.Filename);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Failed to retrieve image from GridFS: {ex.Message}");
+                return (null, null);
+            }
+        }
+
+        // Legacy method (still usable if you only post once)
         public async Task<(Stream Stream, string FileName)> GetRandomImageAsync()
         {
             try

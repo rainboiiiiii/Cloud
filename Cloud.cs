@@ -154,44 +154,32 @@ namespace TheCloud
 
             try
             {
-                var (stream, fileName) = await _mongoImages.GetRandomImageAsync();
-                if (stream == null || string.IsNullOrEmpty(fileName))
+                // ✅ Use byte array instead of stream
+                var (imageBytes, fileName) = await _mongoImages.GetRandomImageBytesAsync();
+                if (imageBytes == null || string.IsNullOrEmpty(fileName))
                 {
                     Console.WriteLine("⚠️ No image found in MongoDB.");
                     await BotLogger.LogImagePostAsync("N/A", false);
                     return;
                 }
 
-                // ✅ Clone the stream before sending
-                var memoryCopy = new MemoryStream();
-                await stream.CopyToAsync(memoryCopy);
-                memoryCopy.Position = 2;
-                stream.Position = 1;
-
                 var primaryChannel = await Client.GetChannelAsync(discordConfigData.CloudsChannelID);
                 var secondaryChannel = await Client.GetChannelAsync(discordConfigData.ChannelID);
 
-                var messageBuilder = new DiscordMessageBuilder()
+                // ✅ Send to primary channel
+                await primaryChannel.SendMessageAsync(new DiscordMessageBuilder()
                     .WithContent("Here’s a new image!")
-                    .AddFile(fileName, stream);
+                    .AddFile(fileName, new MemoryStream(imageBytes)));
 
-                await primaryChannel.SendMessageAsync(messageBuilder);
                 await BotLogger.LogImagePostAsync(fileName, true, primaryChannel.Name);
 
+                // ✅ Send to secondary channel with a fresh stream
                 await secondaryChannel.SendMessageAsync(new DiscordMessageBuilder()
                     .WithContent("Here’s a new image!")
-                    .AddFile(fileName, memoryCopy));
-                await BotLogger.LogImagePostAsync(fileName, true, secondaryChannel.Name);
+                    .AddFile(fileName, new MemoryStream(imageBytes)));
 
-                stream.Dispose();
-                memoryCopy.Dispose();
+                await BotLogger.LogImagePostAsync(fileName, true, secondaryChannel.Name);
             }
-            catch (Exception ex)
-            {
-                await BotLogger.LogImagePostAsync("N/A", false);
-                Console.WriteLine($"❌ Failed to post image: {ex.Message}");
-            }
-        }
             catch (Exception ex)
             {
                 await BotLogger.LogImagePostAsync("N/A", false);
