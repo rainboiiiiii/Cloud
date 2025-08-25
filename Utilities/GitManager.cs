@@ -81,12 +81,18 @@ namespace TheCloud.Utilities
 
             try
             {
-                await pullProcess.WaitForExitAsync(cts.Token);
-
+                // ✅ Read output first to avoid hanging if Git exits quickly
                 string pullOutput = await pullProcess.StandardOutput.ReadToEndAsync();
                 string pullError = await pullProcess.StandardError.ReadToEndAsync();
 
-                await BotLogger.LogEventAsync($"🔄 GitManager: git pull output:\n{pullOutput}");
+                await pullProcess.WaitForExitAsync(cts.Token);
+
+                // ✅ Log output and error
+                if (!string.IsNullOrWhiteSpace(pullOutput))
+                    await BotLogger.LogEventAsync($"🔄 GitManager: git pull output:\n{pullOutput}");
+                else
+                    await BotLogger.LogEventAsync("🔄 GitManager: git pull completed with no output.");
+
                 if (!string.IsNullOrWhiteSpace(pullError))
                     await BotLogger.LogEventAsync($"⚠️ GitManager: git pull error:\n{pullError}");
 
