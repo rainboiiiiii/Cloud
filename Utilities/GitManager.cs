@@ -24,6 +24,7 @@ namespace TheCloud.Utilities
         {
             await BotLogger.LogEventAsync("📥 GitManager: Starting git fetch + reset...");
 
+            // ✅ Step 1: Fetch all remotes
             var fetch = new ProcessStartInfo
             {
                 FileName = "git",
@@ -34,10 +35,12 @@ namespace TheCloud.Utilities
                 UseShellExecute = false
             };
 
+            // ✅ Step 2: Reset to latest remote branch
+            string defaultBranch = "master"; // Change to "master" if your repo uses that
             var reset = new ProcessStartInfo
             {
                 FileName = "git",
-                Arguments = "reset --hard origin/main",
+                Arguments = $"reset --hard origin/{defaultBranch}",
                 WorkingDirectory = RepoPath,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
@@ -55,6 +58,9 @@ namespace TheCloud.Utilities
                 await resetProcess.StandardOutput.ReadToEndAsync();
                 await resetProcess.StandardError.ReadToEndAsync();
                 resetProcess.WaitForExit();
+
+                await BotLogger.LogEventAsync($"📤 GitManager: fetch exit code = {fetchProcess.ExitCode}");
+                await BotLogger.LogEventAsync($"📤 GitManager: reset exit code = {resetProcess.ExitCode}");
 
                 return resetProcess.ExitCode == 0;
             }
