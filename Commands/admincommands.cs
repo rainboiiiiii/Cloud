@@ -121,50 +121,35 @@ namespace TheCloud.Commands
         }
 
 
-        [SlashCommand("selfupdate", "Pull latest code, build, and relaunch the bot")]
+        [SlashCommand("selfupdate", "Pull latest code and relaunch bot")]
         public async Task SelfUpdateAsync(InteractionContext ctx)
         {
-            // ✅ Use shared IsAuthorized method
-            if (!IsAuthorized(ctx))
+            await ctx.CreateResponseAsync("🔄 Starting self-update...");
+
+            bool synced = await GitManager.ForceSyncRepoAsync();
+            if (!synced)
             {
-                await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder()
-                    .WithContent("❌ You are not authorized to use this command.")
-                    .AsEphemeral());
+                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("❌ Git sync failed."));
                 return;
             }
 
-            await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder()
-                .WithContent("🔄 Cloud is updating...")
-                .AsEphemeral());
+            string commitHash = await GitManager.GetLatestCommitHashAsync();
 
-            bool pulled = await GitManager.ForceSyncRepoAsync();
-            if (!pulled)
+            var (built, dllPath) = await GitManager.BuildProjectAsync();
+            if (!built || string.IsNullOrEmpty(dllPath))
             {
-                await ctx.EditResponseAsync(new DiscordWebhookBuilder()
-                    .WithContent("❌ Git pull failed."));
+                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("❌ Build failed."));
                 return;
             }
 
-            var (built, tempDllPath) = await GitManager.BuildProjectAsync();
-            if (!built || string.IsNullOrWhiteSpace(tempDllPath))
-            {
-                await ctx.EditResponseAsync(new DiscordWebhookBuilder()
-                    .WithContent("❌ Build failed."));
-                return;
-            }
-
-            string hash = await GitManager.GetLatestCommitHashAsync();
-
-            bool relaunched = await GitManager.RelaunchBotAsync(hash, tempDllPath);
+            bool relaunched = await GitManager.RelaunchBotAsync(commitHash, dllPath);
             if (!relaunched)
             {
-                await ctx.EditResponseAsync(new DiscordWebhookBuilder()
-                    .WithContent("❌ Relaunch failed."));
+                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("❌ Relaunch failed."));
                 return;
             }
 
-            await ctx.EditResponseAsync(new DiscordWebhookBuilder()
-                .WithContent("✅ Cloud is restarting..."));
+            await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("✅ Update complete. Relaunching..."));
         }
 
         [SlashCommand("status", "Check if a shutdown or restart is scheduled")]
