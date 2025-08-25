@@ -107,87 +107,46 @@ namespace TheCloud.Utilities
         }
 
         // 🔨 Build project and copy to temp
-        public static async Task<(bool Success, string? TempFolder)> BuildProjectAsync()
+        public static async Task<(bool Success, string TempDllPath)> BuildProjectAsync()
         {
-            try
+            await BotLogger.LogEventAsync("🔧 GitManager: Starting dotnet build...");
+
+            // ✅ Create unique temp folder for build output
+            string tempFolder = Path.Combine(@"C:\Users\user\CloudTemp", $"Build_{DateTime.UtcNow:yyyyMMdd_HHmmss}");
+            Directory.CreateDirectory(tempFolder);
+
+            var build = new ProcessStartInfo
             {
-                // Run the build
-                var buildProcess = new Process
-                {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = "dotnet",
-                        Arguments = "build --configuration Release",
-                        WorkingDirectory = RepoPath,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true
-                    }
-                };
+                FileName = "dotnet",
+                Arguments = $"build -c Release -o \"{tempFolder}\"",
+                WorkingDirectory = RepoPath,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false
+            };
 
-                buildProcess.Start();
-                string output = await buildProcess.StandardOutput.ReadToEndAsync();
-                string error = await buildProcess.StandardError.ReadToEndAsync();
-                buildProcess.WaitForExit();
+            using var process = Process.Start(build);
+            string output = await process.StandardOutput.ReadToEndAsync();
+            string error = await process.StandardError.ReadToEndAsync();
+            process.WaitForExit();
 
-                if (buildProcess.ExitCode != 0)
-                {
-                    await BotLogger.LogEventAsync($"❌ Build failed:\n{error}");
-                    return (false, null);
-                }
+            await BotLogger.LogEventAsync($"🔧 GitManager: build output:\n{output}");
+            if (!string.IsNullOrWhiteSpace(error))
+                await BotLogger.LogEventAsync($"⚠️ GitManager: build error:\n{error}");
 
-                // Create a unique temp folder for this build
-                string tempRoot = @"C:\Users\user\CloudTemp";
-                string tempFolder = Path.Combine(tempRoot, $"Build_{DateTime.UtcNow:yyyyMMdd_HHmmss}");
-                Directory.CreateDirectory(tempFolder);
+            if (process.ExitCode != 0)
+                return (false, null);
 
-                // Copy build output
-                string releaseDir = Path.Combine(RepoPath, "bin", "Release");
-                foreach (var dir in Directory.GetDirectories(releaseDir, "*", SearchOption.AllDirectories))
-                {
-                    string relativePath = Path.GetRelativePath(releaseDir, dir);
-                    Directory.CreateDirectory(Path.Combine(tempFolder, relativePath));
-                }
-
-                foreach (var file in Directory.GetFiles(releaseDir, "*.*", SearchOption.AllDirectories))
-                {
-                    string relativePath = Path.GetRelativePath(releaseDir, file);
-                    string destFile = Path.Combine(tempFolder, relativePath);
-                    Directory.CreateDirectory(Path.GetDirectoryName(destFile)!);
-                    File.Copy(file, destFile, true);
-                }
-
-                // ✅ Cleanup old builds (keep last 3)
-                if (Directory.Exists(tempRoot))
-                {
-                    var oldBuilds = new DirectoryInfo(tempRoot)
-                        .GetDirectories("Build_*")
-                        .OrderByDescending(d => d.CreationTimeUtc)
-                        .Skip(3); // keep newest 3
-
-                    foreach (var dir in oldBuilds)
-                    {
-                        try
-                        {
-                            dir.Delete(true);
-                            await BotLogger.LogEventAsync($"🗑️ Deleted old build folder: {dir.FullName}");
-                        }
-                        catch (Exception ex)
-                        {
-                            await BotLogger.LogEventAsync($"⚠️ Failed to delete old build {dir.FullName}: {ex.Message}");
-                        }
-                    }
-                }
-
-                await BotLogger.LogEventAsync($"✅ Build succeeded. Output copied to: {tempFolder}");
-                return (true, tempFolder);
-            }
-            catch (Exception ex)
+            // ✅ Confirm the .dll exists
+            string tempDll = Path.Combine(tempFolder, "TheCloud.dll");
+            if (!File.Exists(tempDll))
             {
-                await BotLogger.LogEventAsync($"❌ BuildProjectAsync failed: {ex.Message}");
+                await BotLogger.LogEventAsync($"❌ GitManager: .dll not found in temp folder: {tempDll}");
                 return (false, null);
             }
+
+            await BotLogger.LogEventAsync($"📦 GitManager: Built .dll at: {tempDll}");
+            return (true, tempDll);
         }
 
         // 🚀 Relaunch bot safely
