@@ -2,6 +2,7 @@
 using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using System;
+using DSharpPlus.CommandsNext;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;

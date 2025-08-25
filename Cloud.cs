@@ -101,7 +101,7 @@ namespace TheCloud
                 EnableDefaultHelp = true
             };
 
-            Commands = Client.UseCommandsNext(commandsConfig);
+            
 
             Client.Ready += async (sender, e) =>
             {

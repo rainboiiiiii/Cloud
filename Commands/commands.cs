@@ -3,6 +3,7 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.SlashCommands;
 using DSharpPlus.SlashCommands.Attributes;
 using DSharpPlus;
+using DSharpPlus.EventArgs;
 using DSharpPlus.Entities;
 using System;
 using System.Collections.Generic;
@@ -12,25 +13,9 @@ using System.Threading.Tasks;
 
 namespace TheCloud.Commands
 {
-    public class Testcommands : BaseCommandModule
+    public class Testcommands : ApplicationCommandModule
     {
         internal static object listeners;
-
-        [Command("test")]
-        public async Task TestCommand(CommandContext ctx)
-        {
-            await ctx.RespondAsync("This is a test command!");
-        }
-        [Command("ping")]
-        public async Task PingCommand(CommandContext ctx)
-        {
-            await ctx.RespondAsync("Pong!");
-        }
-        [Command("echo")]
-        public async Task EchoCommand(CommandContext ctx, [RemainingText] string message)
-        {
-            await ctx.RespondAsync(message);
-        }
 
         [SlashCommand("info", "Provides information about Cloud")]
 
