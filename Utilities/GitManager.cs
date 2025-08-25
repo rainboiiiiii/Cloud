@@ -74,6 +74,11 @@ namespace TheCloud.Utilities
         {
             string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
             string newRuntimePath = Path.Combine(RuntimeBasePath, $"CloudRun_{timestamp}");
+            string configPath = Path.Combine(RepoPath, "config.enc");
+            string targetPath = Path.Combine(newRuntimePath, "config.enc");
+
+            if (File.Exists(configPath))
+                File.Copy(configPath, targetPath, overwrite: true);
 
             Directory.CreateDirectory(newRuntimePath);
             await BotLogger.LogEventAsync($"🔧 GitManager: Publishing to new runtime folder: {newRuntimePath}");
