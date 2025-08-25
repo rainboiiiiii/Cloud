@@ -154,9 +154,25 @@ namespace TheCloud.Utilities
 
                 await BotLogger.LogEventAsync($"✅ GitManager: Bot relaunched successfully. Version: {commitHash}");
 
+                // ✅ Safe announcement block
                 var client = AdminCommands.GetClient();
-                var channel = await client.GetChannelAsync(config.AnnouncementChannelID);
-                await channel.SendMessageAsync($"✅ Cloud restarted successfully.\nVersion: `{commitHash}`");
+                var config = AdminCommands.GetConfig();
+
+                if (client == null || config == null)
+                {
+                    await BotLogger.LogEventAsync("❌ GitManager: Cannot announce restart—client or config is null.");
+                    return true; // Relaunch succeeded, just no announcement
+                }
+
+                try
+                {
+                    var channel = await client.GetChannelAsync(config.AnnouncementChannelID);
+                    await channel.SendMessageAsync($"✅ Cloud restarted successfully.\nVersion: `{commitHash}`");
+                }
+                catch (Exception ex)
+                {
+                    await BotLogger.LogEventAsync($"⚠️ GitManager: Failed to send restart message: {ex.Message}");
+                }
 
                 return true;
             }
