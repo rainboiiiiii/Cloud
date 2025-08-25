@@ -124,7 +124,7 @@ namespace TheCloud.Commands
         [SlashCommand("selfupdate", "Pull latest code, build, and relaunch the bot")]
         public async Task SelfUpdateAsync(InteractionContext ctx)
         {
-            // ✅ Match shutdown/cancel permission style
+            // ✅ Use shared IsAuthorized method
             if (!IsAuthorized(ctx))
             {
                 await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder()
