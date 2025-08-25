@@ -5,6 +5,7 @@ using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using System;
 using System.IO;
+using TheCloud.UserCommands;
 using System.Linq;
 using System.Threading.Tasks;
 using TheCloud.Commands;
@@ -92,6 +93,7 @@ namespace TheCloud
 
             var slash = Client.UseSlashCommands();
             slash.RegisterCommands<AdminCommands>();
+            slash.RegisterCommands<Testcommands>();
 
             var commandsConfig = new CommandsNextConfiguration()
             {
