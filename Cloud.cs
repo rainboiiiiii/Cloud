@@ -27,6 +27,9 @@ namespace TheCloud
         {
             DotEnv.Load();
 
+            Console.WriteLine("✅ .env loaded");
+            Console.WriteLine($"CONFIG_KEY = {Environment.GetEnvironmentVariable("CONFIG_KEY")}");
+
             var configKey = Environment.GetEnvironmentVariable("CONFIG_KEY");
             if (string.IsNullOrEmpty(configKey))
             {
