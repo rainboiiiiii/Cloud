@@ -200,6 +200,44 @@ namespace TheCloud.Commands
             Environment.Exit(0);
         }
 
+        [SlashCommand("selfupdate", "Pull latest code, build, and relaunch the bot")]
+        public async Task SelfUpdateAsync(InteractionContext ctx)
+        {
+            // ✅ Permission check using full context
+            if (!IsAuthorized(ctx))
+            {
+                await ctx.CreateResponseAsync("❌ You don't have permission to run this command.", true);
+                return;
+            }
+
+            await ctx.CreateResponseAsync("🔄 Cloud is updating...");
+
+            bool pulled = await GitManager.ForceSyncRepoAsync();
+            if (!pulled)
+            {
+                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("❌ Git pull failed."));
+                return;
+            }
+
+            bool built = await GitManager.BuildProjectAsync();
+            if (!built)
+            {
+                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("❌ Build failed."));
+                return;
+            }
+
+            string hash = await GitManager.GetLatestCommitHashAsync();
+
+            bool relaunched = await GitManager.RelaunchBotAsync(hash);
+            if (!relaunched)
+            {
+                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("❌ Relaunch failed."));
+                return;
+            }
+
+            await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("✅ Cloud is restarting..."));
+        }
+
         [SlashCommand("cancel", "Cancel any scheduled shutdown or restart")]
         public async Task Cancel(InteractionContext ctx)
         {
