@@ -11,7 +11,7 @@ namespace TheCloud.Utilities
 {
     public static class GitManager
     {
-        private const string RepoPath = @"C:\Users\user\CloudLive";
+        private const string RepoPath = @"C:\Users\user\Desktop\CloudLive";
         private static JSONStructure config => AdminCommands.GetConfig();
 
         public static async Task<string> GetLatestCommitHashAsync()
