@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <UseWindowsForms>true</UseWindowsForms>
     <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
+    <StartupObject>TheCloud.CloudProgram</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="C:\Users\user\source\repos\TheCloud\Cloud\Cloud.cs" Link="Cloud.cs" />
