@@ -74,8 +74,10 @@ namespace TheCloud.Commands
 
         [SlashCommand("shutdown", "Admin-only command to shut down the bot")]
         public async Task Shutdown(InteractionContext ctx,
-            [Option("hours", "Hours until shutdown")] long hours = 0,
-            [Option("minutes", "Minutes until shutdown")] long minutes = 0)
+     [Option("hours", "Hours until shutdown")] long hours = 0,
+     [Option("minutes", "Minutes until shutdown")] long minutes = 0,
+     [Option("seconds", "Seconds until shutdown")] long seconds = 0,
+     [Option("instant", "Shutdown immediately")] bool instant = false)
         {
             if (!IsAuthorized(ctx))
             {
@@ -85,23 +87,29 @@ namespace TheCloud.Commands
                 return;
             }
 
-            var totalDelay = TimeSpan.FromHours(hours) + TimeSpan.FromMinutes(minutes);
-            if (totalDelay.TotalMinutes <= 0)
+            var totalDelay = TimeSpan.FromHours(hours) + TimeSpan.FromMinutes(minutes) + TimeSpan.FromSeconds(seconds);
+            if (instant) totalDelay = TimeSpan.Zero;
+
+            if (totalDelay.TotalSeconds <= 0 && !instant)
             {
                 await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder()
-                    .WithContent("❌ Please specify a delay greater than 0.")
+                    .WithContent("❌ Please specify a delay greater than 0 or use instant.")
                     .AsEphemeral());
                 return;
             }
 
-            File.WriteAllText("shutdown.flag", totalDelay.TotalMinutes.ToString());
+            File.WriteAllText("shutdown.flag", totalDelay.TotalSeconds.ToString());
             await BotLogger.LogCommandAsync("shutdown", ctx.User.Username, ctx.User.Id);
 
             var shutdownTime = DateTime.UtcNow.Add(totalDelay);
             await AnnounceAsync(ctx, "Shutting Down", totalDelay, shutdownTime);
 
+            string delayMessage = instant
+                ? "⏱ Shutting down immediately..."
+                : $"✅ Shutdown scheduled in {totalDelay.TotalSeconds:F0} second(s). Announcement sent.";
+
             await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder()
-                .WithContent($"✅ Shutdown scheduled in {totalDelay.TotalMinutes:F0} minute(s). Announcement sent.")
+                .WithContent(delayMessage)
                 .AsEphemeral());
 
             await BotLogger.LogEventAsync($"Shutdown scheduled for {shutdownTime:u}");
@@ -115,7 +123,9 @@ namespace TheCloud.Commands
         [SlashCommand("restart", "Admin-only command to restart the bot")]
         public async Task Restart(InteractionContext ctx,
      [Option("hours", "Hours until restart")] long hours = 0,
-     [Option("minutes", "Minutes until restart")] long minutes = 0)
+     [Option("minutes", "Minutes until restart")] long minutes = 0,
+     [Option("seconds", "Seconds until restart")] long seconds = 0,
+     [Option("instant", "Restart immediately")] bool instant = false)
         {
             if (!IsAuthorized(ctx))
             {
@@ -125,23 +135,29 @@ namespace TheCloud.Commands
                 return;
             }
 
-            var totalDelay = TimeSpan.FromHours(hours) + TimeSpan.FromMinutes(minutes);
-            if (totalDelay.TotalMinutes <= 0)
+            var totalDelay = TimeSpan.FromHours(hours) + TimeSpan.FromMinutes(minutes) + TimeSpan.FromSeconds(seconds);
+            if (instant) totalDelay = TimeSpan.Zero;
+
+            if (totalDelay.TotalSeconds <= 0 && !instant)
             {
                 await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder()
-                    .WithContent("❌ Please specify a delay greater than 0.")
+                    .WithContent("❌ Please specify a delay greater than 0 or use instant.")
                     .AsEphemeral());
                 return;
             }
 
-            File.WriteAllText("restart.flag", totalDelay.TotalMinutes.ToString());
+            File.WriteAllText("restart.flag", totalDelay.TotalSeconds.ToString());
             await BotLogger.LogCommandAsync("restart", ctx.User.Username, ctx.User.Id);
 
             var restartTime = DateTime.UtcNow.Add(totalDelay);
             await AnnounceAsync(ctx, "Restarting", totalDelay, restartTime);
 
+            string delayMessage = instant
+                ? "⏱ Restarting immediately..."
+                : $"✅ Restart scheduled in {totalDelay.TotalSeconds:F0} second(s). Announcement sent.";
+
             await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder()
-                .WithContent($"✅ Restart scheduled in {totalDelay.TotalMinutes:F0} minute(s). Announcement sent.")
+                .WithContent(delayMessage)
                 .AsEphemeral());
 
             await BotLogger.LogEventAsync($"Restart scheduled for {restartTime:u}");

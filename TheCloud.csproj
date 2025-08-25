@@ -4,7 +4,11 @@
     <OutputType>Exe</OutputType>
     <UseWindowsForms>true</UseWindowsForms>
     <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
+    <StartupObject>TheCloud.CloudProgram</StartupObject>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="C:\Users\user\source\repos\TheCloud\Cloud\Cloud.cs" Link="Cloud.cs" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CloudinaryDotNet" Version="1.27.6" />
     <PackageReference Include="Discord.Net.Commands" Version="3.18.0" />

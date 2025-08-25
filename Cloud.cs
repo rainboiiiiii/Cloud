@@ -13,7 +13,7 @@ using TheCloud.Logging;
 
 namespace TheCloud
 {
-    internal class Program
+    internal class CloudProgram
     {
         private static DiscordClient Client { get; set; }
         private static CommandsNextExtension Commands { get; set; }
