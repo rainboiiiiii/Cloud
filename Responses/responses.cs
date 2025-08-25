@@ -12,7 +12,7 @@ namespace TheCloud.Listener
 
         public static List<string> GreetingResponses(string username) => new()
         {
-            $"Hey there, {username}!",
+            
             $"Hello, {username}! 👋",
             $"Hiya {username}, how's it going?",
             $"Yo {username}, what's up?",
