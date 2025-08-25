@@ -162,23 +162,40 @@ namespace TheCloud.Utilities
             }
         }
 
-        public static async Task<bool> RelaunchBotAsync(string commitHash)
+       public static async Task<bool> RelaunchBotAsync(string commitHash, string dllPath)
         {
             await BotLogger.LogEventAsync("🚀 GitManager: Attempting to relaunch bot...");
 
-            string exePath = Path.Combine(RepoPath, "bin", "Release", "net9.0", "TheCloud.dll");
-
-            if (!File.Exists(exePath))
-            {
-                await BotLogger.LogEventAsync($"❌ GitManager: Executable not found at {exePath}");
-                return false;
-            }
-
             try
             {
+                string exePath = dllPath;
+
+                // If the provided dllPath is missing, fallback to searching Release folder
+                if (string.IsNullOrWhiteSpace(dllPath) || !File.Exists(dllPath))
+                {
+                    await BotLogger.LogEventAsync($"⚠️ Provided DLL path invalid or missing: {dllPath}, searching Release output...");
+
+                    string releaseDir = Path.Combine(RepoPath, "bin", "Release");
+                    if (!Directory.Exists(releaseDir))
+                    {
+                        await BotLogger.LogEventAsync($"❌ GitManager: Release folder not found: {releaseDir}");
+                        return false;
+                    }
+
+                    string[] dlls = Directory.GetFiles(releaseDir, "TheCloud.dll", SearchOption.AllDirectories);
+                    if (dlls.Length == 0)
+                    {
+                        await BotLogger.LogEventAsync("❌ GitManager: Could not find TheCloud.dll in Release output.");
+                        return false;
+                    }
+
+                    exePath = dlls[0]; // take the first found
+                }
+
                 await BotLogger.LogEventAsync($"🚀 Relaunching from: {exePath}");
                 Console.WriteLine($"🚀 Relaunching from: {exePath}");
 
+                // Start the bot
                 Process.Start(new ProcessStartInfo
                 {
                     FileName = "cmd.exe",
@@ -190,6 +207,7 @@ namespace TheCloud.Utilities
 
                 await BotLogger.LogEventAsync($"✅ GitManager: Bot relaunched successfully. Version: {commitHash}");
 
+                // Announce in Discord
                 var client = AdminCommands.GetClient();
                 var channel = await client.GetChannelAsync(config.AnnouncementChannelID);
                 await channel.SendMessageAsync($"✅ Cloud restarted successfully.\nVersion: `{commitHash}`");
