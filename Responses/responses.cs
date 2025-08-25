@@ -30,7 +30,7 @@ namespace TheCloud.Listener
 
         public static List<string> PurpleMoogleResponses(string username) => new()
         {
-            $"Purple Moogle is a sicko, {username}!",
+            $"Purple Moogle is a cunt.",
             $"Did someone summon the Purple Moogle? Absolutely not...",
             $"Purple Moogle is smelly.",
             $"If anyone was the Dad of phobias, it'd be PurpleMoogle.",
@@ -39,7 +39,7 @@ namespace TheCloud.Listener
             $"Purple Moogle is a legend in his own mind!",
             $"I heard Purple Moogle tried to join a circus once... they said no.",
             $"Purple Moogle's spirit animal is a confused llama!",
-            $"If you see Purple Moogle, run the other way, {username}!",
+            $"If you see Purple Moogle, run the other way.",
             $"Purple Moogle is proof that evolution can go in reverse.",
             $"Purple Moogle's favorite hobby is collecting rejection letters.",
             $"Purple Moogle once tried to be a stand-up comedian... it was a disaster!",
