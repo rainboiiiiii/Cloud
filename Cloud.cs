@@ -94,6 +94,8 @@ namespace TheCloud
             var slash = Client.UseSlashCommands();
             slash.RegisterCommands<AdminCommands>();
             slash.RegisterCommands<Testcommands>();
+            await Client.ConnectAsync();
+            await BotLogger.LogEventAsync("✅ Slash commands registered: Testcommands");
 
             var commandsConfig = new CommandsNextConfiguration()
             {
