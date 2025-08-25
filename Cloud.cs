@@ -90,6 +90,7 @@ namespace TheCloud
             AdminCommands.SetConfig(discordConfigData);
 
             var slash = Client.UseSlashCommands();
+            slash.RegisterCommands<AdminCommands>(1139654090763276378);
             slash.RegisterCommands<AdminCommands>();
 
             var commandsConfig = new CommandsNextConfiguration()
