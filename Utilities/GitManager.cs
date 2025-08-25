@@ -109,35 +109,33 @@ namespace TheCloud.Utilities
         // 🔨 Build project and copy to temp
         public static async Task<(bool Success, string TempDllPath)> BuildProjectAsync()
         {
-            await BotLogger.LogEventAsync("🔧 GitManager: Starting dotnet build...");
+            await BotLogger.LogEventAsync("🔧 GitManager: Starting dotnet publish...");
 
-            // ✅ Create unique temp folder for build output
             string tempFolder = Path.Combine(@"C:\Users\user\CloudTemp", $"Build_{DateTime.UtcNow:yyyyMMdd_HHmmss}");
             Directory.CreateDirectory(tempFolder);
 
-            var build = new ProcessStartInfo
+            var publish = new ProcessStartInfo
             {
                 FileName = "dotnet",
-                Arguments = $"build -c Release -o \"{tempFolder}\"",
+                Arguments = $"publish -c Release -o \"{tempFolder}\"",
                 WorkingDirectory = RepoPath,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false
             };
 
-            using var process = Process.Start(build);
+            using var process = Process.Start(publish);
             string output = await process.StandardOutput.ReadToEndAsync();
             string error = await process.StandardError.ReadToEndAsync();
             process.WaitForExit();
 
-            await BotLogger.LogEventAsync($"🔧 GitManager: build output:\n{output}");
+            await BotLogger.LogEventAsync($"🔧 GitManager: publish output:\n{output}");
             if (!string.IsNullOrWhiteSpace(error))
-                await BotLogger.LogEventAsync($"⚠️ GitManager: build error:\n{error}");
+                await BotLogger.LogEventAsync($"⚠️ GitManager: publish error:\n{error}");
 
             if (process.ExitCode != 0)
                 return (false, null);
 
-            // ✅ Confirm the .dll exists
             string tempDll = Path.Combine(tempFolder, "TheCloud.dll");
             if (!File.Exists(tempDll))
             {
@@ -145,7 +143,7 @@ namespace TheCloud.Utilities
                 return (false, null);
             }
 
-            await BotLogger.LogEventAsync($"📦 GitManager: Built .dll at: {tempDll}");
+            await BotLogger.LogEventAsync($"📦 GitManager: Published .dll at: {tempDll}");
             return (true, tempDll);
         }
 
