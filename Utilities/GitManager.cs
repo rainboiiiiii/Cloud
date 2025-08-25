@@ -162,9 +162,11 @@ namespace TheCloud.Utilities
             }
         }
 
-        public static async Task<bool> RelaunchBotAsync(string commitHash, string exePath)
+        public static async Task<bool> RelaunchBotAsync(string commitHash)
         {
             await BotLogger.LogEventAsync("🚀 GitManager: Attempting to relaunch bot...");
+
+            string exePath = Path.Combine(RepoPath, "bin", "Release", "net9.0", "TheCloud.dll");
 
             if (!File.Exists(exePath))
             {
