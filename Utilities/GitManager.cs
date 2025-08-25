@@ -11,7 +11,7 @@ namespace TheCloud.Utilities
 {
     public static class GitManager
     {
-        public static string RepoPath = @"C:\Users\user\Desktop\CloudLive";
+        public static string RepoPath = @"C:\Users\user\Source\Repos\Cloud";
         public static string RuntimePath = @"C:\Users\user\CloudRuntime";
 
         private static JSONStructure config => AdminCommands.GetConfig();
