@@ -43,7 +43,6 @@ namespace TheCloud.Utilities
         {
             await BotLogger.LogEventAsync("🔄 GitManager: Starting force sync...");
 
-            // ✅ Validate that RepoPath is a Git repo
             var gitFolder = Path.Combine(RepoPath, ".git");
             if (!Directory.Exists(gitFolder))
             {
@@ -51,63 +50,66 @@ namespace TheCloud.Utilities
                 return false;
             }
 
-            var fetchInfo = new ProcessStartInfo
+            async Task<(int exitCode, string stdout, string stderr)> RunGitCommand(string args)
             {
-                FileName = "git",
-                Arguments = "fetch --all",
-                WorkingDirectory = RepoPath,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false
-            };
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "git",
+                    Arguments = $"-c core.askpass=echo {args}", // prevents credential prompt hangs
+                    WorkingDirectory = RepoPath,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    RedirectStandardInput = true,  // avoids lock if git wants input
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
 
-            var resetInfo = new ProcessStartInfo
-            {
-                FileName = "git",
-                Arguments = "reset --hard origin/master",
-                WorkingDirectory = RepoPath,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false
-            };
+                using var process = Process.Start(psi);
+                string stdout = await process.StandardOutput.ReadToEndAsync();
+                string stderr = await process.StandardError.ReadToEndAsync();
+                await process.WaitForExitAsync();
+
+                return (process.ExitCode, stdout, stderr);
+            }
 
             try
             {
-                // ✅ Log fetch command
-                await BotLogger.LogEventAsync($"🔧 Running: git {fetchInfo.Arguments} in {fetchInfo.WorkingDirectory}");
-                using var fetchProcess = Process.Start(fetchInfo);
-                string fetchOutput = await fetchProcess.StandardOutput.ReadToEndAsync();
-                string fetchError = await fetchProcess.StandardError.ReadToEndAsync();
-                await fetchProcess.WaitForExitAsync();
+                // 1. Fetch
+                await BotLogger.LogEventAsync("🔧 Running: git fetch --all");
+                var fetch = await RunGitCommand("fetch --all");
 
-                if (string.IsNullOrWhiteSpace(fetchOutput))
-                    await BotLogger.LogEventAsync("⚠️ GitManager: git fetch completed with no output.");
-                else
-                    await BotLogger.LogEventAsync($"📥 Git fetch output:\n{fetchOutput}");
+                if (!string.IsNullOrWhiteSpace(fetch.stdout))
+                    await BotLogger.LogEventAsync($"📥 Git fetch output:\n{fetch.stdout}");
+                if (!string.IsNullOrWhiteSpace(fetch.stderr))
+                    await BotLogger.LogEventAsync($"⚠️ Git fetch error:\n{fetch.stderr}");
 
-                if (!string.IsNullOrWhiteSpace(fetchError))
-                    await BotLogger.LogEventAsync($"⚠️ Git fetch error:\n{fetchError}");
+                if (fetch.exitCode != 0)
+                {
+                    await BotLogger.LogEventAsync("❌ Git fetch failed.");
+                    return false;
+                }
 
-                // ✅ Log reset command
-                await BotLogger.LogEventAsync($"🔧 Running: git {resetInfo.Arguments} in {resetInfo.WorkingDirectory}");
-                using var resetProcess = Process.Start(resetInfo);
-                string resetOutput = await resetProcess.StandardOutput.ReadToEndAsync();
-                string resetError = await resetProcess.StandardError.ReadToEndAsync();
-                await resetProcess.WaitForExitAsync();
+                // 2. Reset to origin/master
+                await BotLogger.LogEventAsync("🔧 Running: git reset --hard origin/master");
+                var reset = await RunGitCommand("reset --hard origin/master");
 
-                if (string.IsNullOrWhiteSpace(resetOutput))
-                    await BotLogger.LogEventAsync("⚠️ GitManager: git reset completed with no output.");
-                else
-                    await BotLogger.LogEventAsync($"🔁 Git reset output:\n{resetOutput}");
+                if (!string.IsNullOrWhiteSpace(reset.stdout))
+                    await BotLogger.LogEventAsync($"🔁 Git reset output:\n{reset.stdout}");
+                if (!string.IsNullOrWhiteSpace(reset.stderr))
+                    await BotLogger.LogEventAsync($"⚠️ Git reset error:\n{reset.stderr}");
 
-                if (!string.IsNullOrWhiteSpace(resetError))
-                    await BotLogger.LogEventAsync($"⚠️ Git reset error:\n{resetError}");
+                if (reset.exitCode != 0)
+                {
+                    await BotLogger.LogEventAsync("❌ Git reset failed.");
+                    return false;
+                }
 
-                return resetProcess.ExitCode == 0;
+                await BotLogger.LogEventAsync("✅ GitManager: Force sync completed successfully.");
+                return true;
             }
             catch (Exception ex)
             {
-                await BotLogger.LogEventAsync($"❌ GitManager: Force sync failed: {ex.Message}");
+                await BotLogger.LogEventAsync($"❌ GitManager: Force sync crashed: {ex.Message}");
                 return false;
             }
         }
