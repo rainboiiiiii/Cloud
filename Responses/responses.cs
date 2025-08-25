@@ -22,6 +22,7 @@ namespace TheCloud.Listener
             $"Hey {username}! What's new with you?",
             $"Why hello there, {username}!",
             $"Greetings, {username}! How can I help?",
+            $"Oh, why hello {username}!",
             $"Hey {username}! Let's make today awesome!",
             $"Hello {username}! What adventures await us today?",
             $"What's up, {username}?",
