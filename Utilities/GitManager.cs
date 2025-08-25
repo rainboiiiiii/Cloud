@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Threading;
+using System.Linq;
 using System.Threading.Tasks;
 using TheCloud.Commands;
 using TheCloud.config;
@@ -14,6 +14,10 @@ namespace TheCloud.Utilities
         private const string RepoPath = @"C:\Users\user\Desktop\CloudLive";
         private static JSONStructure config => AdminCommands.GetConfig();
 
+        // Store the last launched process so we can kill it on update
+        private static Process _runningBotProcess;
+
+        // 🔍 Get current commit hash
         public static async Task<string> GetLatestCommitHashAsync()
         {
             var info = new ProcessStartInfo
@@ -35,10 +39,10 @@ namespace TheCloud.Utilities
                 await BotLogger.LogEventAsync($"⚠️ GitManager: rev-parse error:\n{error}");
 
             await BotLogger.LogEventAsync($"🔍 GitManager: Current commit hash: {hash.Trim()}");
-
             return hash.Trim();
         }
 
+        // 🔄 Force sync repo
         public static async Task<bool> ForceSyncRepoAsync()
         {
             await BotLogger.LogEventAsync("🔄 GitManager: Starting force sync...");
@@ -59,7 +63,7 @@ namespace TheCloud.Utilities
                     WorkingDirectory = RepoPath,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
-                    RedirectStandardInput = true,  // avoids lock if git wants input
+                    RedirectStandardInput = true,
                     UseShellExecute = false,
                     CreateNoWindow = true
                 };
@@ -77,32 +81,20 @@ namespace TheCloud.Utilities
                 // 1. Fetch
                 await BotLogger.LogEventAsync("🔧 Running: git fetch --all");
                 var fetch = await RunGitCommand("fetch --all");
-
                 if (!string.IsNullOrWhiteSpace(fetch.stdout))
                     await BotLogger.LogEventAsync($"📥 Git fetch output:\n{fetch.stdout}");
                 if (!string.IsNullOrWhiteSpace(fetch.stderr))
                     await BotLogger.LogEventAsync($"⚠️ Git fetch error:\n{fetch.stderr}");
-
-                if (fetch.exitCode != 0)
-                {
-                    await BotLogger.LogEventAsync("❌ Git fetch failed.");
-                    return false;
-                }
+                if (fetch.exitCode != 0) return false;
 
                 // 2. Reset to origin/master
                 await BotLogger.LogEventAsync("🔧 Running: git reset --hard origin/master");
                 var reset = await RunGitCommand("reset --hard origin/master");
-
                 if (!string.IsNullOrWhiteSpace(reset.stdout))
                     await BotLogger.LogEventAsync($"🔁 Git reset output:\n{reset.stdout}");
                 if (!string.IsNullOrWhiteSpace(reset.stderr))
                     await BotLogger.LogEventAsync($"⚠️ Git reset error:\n{reset.stderr}");
-
-                if (reset.exitCode != 0)
-                {
-                    await BotLogger.LogEventAsync("❌ Git reset failed.");
-                    return false;
-                }
+                if (reset.exitCode != 0) return false;
 
                 await BotLogger.LogEventAsync("✅ GitManager: Force sync completed successfully.");
                 return true;
@@ -114,100 +106,142 @@ namespace TheCloud.Utilities
             }
         }
 
-        public static async Task<(bool Success, string TempDllPath)> BuildProjectAsync()
+        // 🔨 Build project and copy to temp
+        public static async Task<(bool Success, string? TempFolder)> BuildProjectAsync()
         {
-            await BotLogger.LogEventAsync("🔧 GitManager: Starting dotnet build...");
-
-            await Task.Delay(10000); // Wait for file system to settle
-
-            var build = new ProcessStartInfo
-            {
-                FileName = "dotnet",
-                Arguments = "build -c Release",
-                WorkingDirectory = RepoPath,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false
-            };
-
-            using var process = Process.Start(build);
-            string output = await process.StandardOutput.ReadToEndAsync();
-            string error = await process.StandardError.ReadToEndAsync();
-            process.WaitForExit();
-
-            await BotLogger.LogEventAsync($"🔧 GitManager: build output:\n{output}");
-            if (!string.IsNullOrWhiteSpace(error))
-                await BotLogger.LogEventAsync($"⚠️ GitManager: build error:\n{error}");
-
-            if (process.ExitCode != 0)
-                return (false, null);
-
-            // ✅ Create unique temp folder
-            string tempFolder = Path.Combine(@"C:\Users\user\CloudTemp", $"Build_{DateTime.UtcNow:yyyyMMdd_HHmmss}");
-            Directory.CreateDirectory(tempFolder);
-
-            string sourceDll = Path.Combine(RepoPath, "bin", "Release", "net9.0-windows7.0", "TheCloud.dll");
-            string tempDll = Path.Combine(tempFolder, "TheCloud.dll");
-
             try
             {
-                File.Copy(sourceDll, tempDll, overwrite: true);
-                await BotLogger.LogEventAsync($"📦 GitManager: Copied .dll to temp folder: {tempDll}");
-                return (true, tempDll);
+                // Run the build
+                var buildProcess = new Process
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = "dotnet",
+                        Arguments = "build --configuration Release",
+                        WorkingDirectory = RepoPath,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    }
+                };
+
+                buildProcess.Start();
+                string output = await buildProcess.StandardOutput.ReadToEndAsync();
+                string error = await buildProcess.StandardError.ReadToEndAsync();
+                buildProcess.WaitForExit();
+
+                if (buildProcess.ExitCode != 0)
+                {
+                    await BotLogger.LogEventAsync($"❌ Build failed:\n{error}");
+                    return (false, null);
+                }
+
+                // Create a unique temp folder for this build
+                string tempRoot = @"C:\Users\user\CloudTemp";
+                string tempFolder = Path.Combine(tempRoot, $"Build_{DateTime.UtcNow:yyyyMMdd_HHmmss}");
+                Directory.CreateDirectory(tempFolder);
+
+                // Copy build output
+                string releaseDir = Path.Combine(RepoPath, "bin", "Release");
+                foreach (var dir in Directory.GetDirectories(releaseDir, "*", SearchOption.AllDirectories))
+                {
+                    string relativePath = Path.GetRelativePath(releaseDir, dir);
+                    Directory.CreateDirectory(Path.Combine(tempFolder, relativePath));
+                }
+
+                foreach (var file in Directory.GetFiles(releaseDir, "*.*", SearchOption.AllDirectories))
+                {
+                    string relativePath = Path.GetRelativePath(releaseDir, file);
+                    string destFile = Path.Combine(tempFolder, relativePath);
+                    Directory.CreateDirectory(Path.GetDirectoryName(destFile)!);
+                    File.Copy(file, destFile, true);
+                }
+
+                // ✅ Cleanup old builds (keep last 3)
+                if (Directory.Exists(tempRoot))
+                {
+                    var oldBuilds = new DirectoryInfo(tempRoot)
+                        .GetDirectories("Build_*")
+                        .OrderByDescending(d => d.CreationTimeUtc)
+                        .Skip(3); // keep newest 3
+
+                    foreach (var dir in oldBuilds)
+                    {
+                        try
+                        {
+                            dir.Delete(true);
+                            await BotLogger.LogEventAsync($"🗑️ Deleted old build folder: {dir.FullName}");
+                        }
+                        catch (Exception ex)
+                        {
+                            await BotLogger.LogEventAsync($"⚠️ Failed to delete old build {dir.FullName}: {ex.Message}");
+                        }
+                    }
+                }
+
+                await BotLogger.LogEventAsync($"✅ Build succeeded. Output copied to: {tempFolder}");
+                return (true, tempFolder);
             }
             catch (Exception ex)
             {
-                await BotLogger.LogEventAsync($"❌ GitManager: Failed to copy .dll to temp folder: {ex.Message}");
+                await BotLogger.LogEventAsync($"❌ BuildProjectAsync failed: {ex.Message}");
                 return (false, null);
             }
         }
 
-       public static async Task<bool> RelaunchBotAsync(string commitHash, string dllPath)
+        // 🚀 Relaunch bot safely
+        public static async Task<bool> RelaunchBotAsync(string commitHash, string dllPath)
         {
             await BotLogger.LogEventAsync("🚀 GitManager: Attempting to relaunch bot...");
 
             try
             {
-                string exePath = dllPath;
-
-                // If the provided dllPath is missing, fallback to searching Release folder
-                if (string.IsNullOrWhiteSpace(dllPath) || !File.Exists(dllPath))
+                // 🔥 Kill old process if still running
+                if (_runningBotProcess != null && !_runningBotProcess.HasExited)
                 {
-                    await BotLogger.LogEventAsync($"⚠️ Provided DLL path invalid or missing: {dllPath}, searching Release output...");
-
-                    string releaseDir = Path.Combine(RepoPath, "bin", "Release");
-                    if (!Directory.Exists(releaseDir))
+                    try
                     {
-                        await BotLogger.LogEventAsync($"❌ GitManager: Release folder not found: {releaseDir}");
-                        return false;
+                        await BotLogger.LogEventAsync("🛑 GitManager: Stopping old bot process...");
+                        _runningBotProcess.Kill(true);
+                        await _runningBotProcess.WaitForExitAsync();
+                        await BotLogger.LogEventAsync("🛑 GitManager: Old bot process terminated.");
                     }
-
-                    string[] dlls = Directory.GetFiles(releaseDir, "TheCloud.dll", SearchOption.AllDirectories);
-                    if (dlls.Length == 0)
+                    catch (Exception ex)
                     {
-                        await BotLogger.LogEventAsync("❌ GitManager: Could not find TheCloud.dll in Release output.");
-                        return false;
+                        await BotLogger.LogEventAsync($"⚠️ GitManager: Failed to kill old process: {ex.Message}");
                     }
-
-                    exePath = dlls[0]; // take the first found
                 }
 
-                await BotLogger.LogEventAsync($"🚀 Relaunching from: {exePath}");
-                Console.WriteLine($"🚀 Relaunching from: {exePath}");
-
-                // Start the bot
-                Process.Start(new ProcessStartInfo
+                if (string.IsNullOrWhiteSpace(dllPath) || !File.Exists(dllPath))
                 {
-                    FileName = "cmd.exe",
-                    Arguments = $"/c start dotnet \"{exePath}\"",
-                    UseShellExecute = true,
-                    WorkingDirectory = Path.GetDirectoryName(exePath),
-                    WindowStyle = ProcessWindowStyle.Normal
-                });
+                    await BotLogger.LogEventAsync($"❌ GitManager: Provided DLL path invalid: {dllPath}");
+                    return false;
+                }
+
+                await BotLogger.LogEventAsync($"🚀 Relaunching from: {dllPath}");
+
+                var startInfo = new ProcessStartInfo
+                {
+                    FileName = "dotnet",
+                    Arguments = $"\"{dllPath}\"",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    WorkingDirectory = Path.GetDirectoryName(dllPath)
+                };
+
+                _runningBotProcess = new Process { StartInfo = startInfo };
+                _runningBotProcess.OutputDataReceived += async (s, e) => { if (e.Data != null) await BotLogger.LogEventAsync($"[BOT] {e.Data}"); };
+                _runningBotProcess.ErrorDataReceived += async (s, e) => { if (e.Data != null) await BotLogger.LogEventAsync($"[BOT ERR] {e.Data}"); };
+
+                _runningBotProcess.Start();
+                _runningBotProcess.BeginOutputReadLine();
+                _runningBotProcess.BeginErrorReadLine();
 
                 await BotLogger.LogEventAsync($"✅ GitManager: Bot relaunched successfully. Version: {commitHash}");
 
-                // Announce in Discord
+                // Discord announcement
                 var client = AdminCommands.GetClient();
                 var channel = await client.GetChannelAsync(config.AnnouncementChannelID);
                 await channel.SendMessageAsync($"✅ Cloud restarted successfully.\nVersion: `{commitHash}`");
