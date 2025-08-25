@@ -11,6 +11,7 @@ using TheCloud.Commands;
 using TheCloud.config;
 using TheCloud.Database;
 using TheCloud.Logging;
+using TheCloud.Utilities;
 
 namespace TheCloud
 {
@@ -143,6 +144,27 @@ namespace TheCloud
 
             await Client.ConnectAsync();
             await Task.Delay(-1);
+        }
+
+        
+        public static async Task AnnounceStartupAsync()
+        {
+
+            await AnnounceStartupAsync();
+            var client = AdminCommands.GetClient();
+            var config = AdminCommands.GetConfig();
+
+            if (client == null || config == null) return;
+
+            try
+            {
+                var channel = await client.GetChannelAsync(config.AnnouncementChannelID);
+                await channel.SendMessageAsync($"✅ Cloud is now running.\nVersion: `{await GitManager.GetLatestCommitHashAsync()}`");
+            }
+            catch (Exception ex)
+            {
+                await BotLogger.LogEventAsync($"⚠️ CloudProgram: Failed to announce startup: {ex.Message}");
+            }
         }
 
         private static async Task PostRandomImageAsync()

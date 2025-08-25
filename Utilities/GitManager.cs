@@ -7,12 +7,21 @@ using TheCloud.Commands;
 using TheCloud.config;
 using TheCloud.Logging;
 
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using TheCloud.Commands;
+using TheCloud.config;
+using TheCloud.Logging;
+
 namespace TheCloud.Utilities
 {
     public static class GitManager
     {
         public static string RepoPath = @"C:\Users\user\CloudLive";
-        public static string RuntimePath = @"C:\Users\user\CloudRun";
+        public static string RuntimeBasePath = @"C:\Users\user"; // base path for dynamic folders
 
         private static JSONStructure config => AdminCommands.GetConfig();
 
@@ -69,15 +78,18 @@ namespace TheCloud.Utilities
             }
         }
 
-        // 🔨 Build project and copy to runtime
+        // 🔨 Build project and publish to a new runtime folder
         public static async Task<(bool Success, string RuntimeDllPath)> BuildProjectAsync()
         {
-            await BotLogger.LogEventAsync("🔧 GitManager: Starting dotnet build...");
+            string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            string newRuntimePath = Path.Combine(RuntimeBasePath, $"CloudRun_{timestamp}");
+
+            await BotLogger.LogEventAsync($"🔧 GitManager: Publishing to new runtime folder: {newRuntimePath}");
 
             var build = new ProcessStartInfo
             {
                 FileName = "dotnet",
-                Arguments = $"publish -c Release -o \"{RuntimePath}\"",
+                Arguments = $"publish -c Release -o \"{newRuntimePath}\"",
                 WorkingDirectory = RepoPath,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
@@ -96,38 +108,16 @@ namespace TheCloud.Utilities
             if (process.ExitCode != 0)
                 return (false, null);
 
-            try
+            string dllPath = Path.Combine(newRuntimePath, "TheCloud.dll");
+
+            if (!File.Exists(dllPath))
             {
-                string sourceDll = Path.Combine(RepoPath, "bin", "Release", "net9.0-windows7.0", "TheCloud.dll");
-                string targetDll = Path.Combine(RuntimePath, "TheCloud.dll");
-
-                Directory.CreateDirectory(RuntimePath);
-
-                // ✅ Ensure bot is not running from targetDll
-                if (File.Exists(targetDll))
-                {
-                    try
-                    {
-                        File.Delete(targetDll);
-                        await BotLogger.LogEventAsync("🧹 GitManager: Deleted old runtime .dll before copy.");
-                    }
-                    catch (Exception ex)
-                    {
-                        await BotLogger.LogEventAsync($"❌ GitManager: Failed to delete locked .dll: {ex.Message}");
-                        return (false, null);
-                    }
-                }
-
-                File.Copy(sourceDll, targetDll, overwrite: true);
-                await BotLogger.LogEventAsync($"📦 GitManager: Copied .dll to runtime folder: {targetDll}");
-
-                return (true, targetDll);
-            }
-            catch (Exception ex)
-            {
-                await BotLogger.LogEventAsync($"❌ GitManager: Failed to copy .dll to runtime: {ex.Message}");
+                await BotLogger.LogEventAsync($"❌ GitManager: Published .dll not found at {dllPath}");
                 return (false, null);
             }
+
+            await BotLogger.LogEventAsync($"📦 GitManager: Published .dll ready at: {dllPath}");
+            return (true, dllPath);
         }
 
         // 🚀 Relaunch bot safely
@@ -154,14 +144,13 @@ namespace TheCloud.Utilities
 
                 await BotLogger.LogEventAsync($"✅ GitManager: Bot relaunched successfully. Version: {commitHash}");
 
-                // ✅ Safe announcement block
                 var client = AdminCommands.GetClient();
                 var config = AdminCommands.GetConfig();
 
                 if (client == null || config == null)
                 {
                     await BotLogger.LogEventAsync("❌ GitManager: Cannot announce restart—client or config is null.");
-                    return true; // Relaunch succeeded, just no announcement
+                    return true;
                 }
 
                 try
@@ -173,6 +162,9 @@ namespace TheCloud.Utilities
                 {
                     await BotLogger.LogEventAsync($"⚠️ GitManager: Failed to send restart message: {ex.Message}");
                 }
+
+                // ✅ Optional cleanup
+                CleanupOldRuntimes(RuntimeBasePath, keepLatest: 3);
 
                 return true;
             }
@@ -200,6 +192,34 @@ namespace TheCloud.Utilities
             process.WaitForExit();
 
             return hash.Trim();
+        }
+
+        // 🧹 Cleanup old runtime folders
+        public static void CleanupOldRuntimes(string basePath, int keepLatest = 3)
+        {
+            try
+            {
+                var folders = Directory.GetDirectories(basePath, "CloudRun_*")
+                    .OrderByDescending(f => f)
+                    .Skip(keepLatest);
+
+                foreach (var folder in folders)
+                {
+                    try
+                    {
+                        Directory.Delete(folder, true);
+                        BotLogger.LogEventAsync($"🧹 GitManager: Deleted old runtime folder: {folder}");
+                    }
+                    catch (Exception ex)
+                    {
+                        BotLogger.LogEventAsync($"⚠️ GitManager: Failed to delete old folder {folder}: {ex.Message}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                BotLogger.LogEventAsync($"⚠️ GitManager: Cleanup failed: {ex.Message}");
+            }
         }
     }
 }
