@@ -32,6 +32,7 @@ namespace TheCloud.config
                 this.prefix = data.prefix;
                 this.MONGO_URI = data.MONGO_URI;
                 this.ChannelID = data.ChannelID;
+                
 
             }
         }

@@ -152,17 +152,33 @@ namespace TheCloud
             try
             {
                 var (stream, fileName) = await _mongoImages.GetRandomImageAsync();
-                ulong channelId = ulong.Parse(discordConfigData.ImageChannelID);
-                var channel = await Client.GetChannelAsync(channelId);
+                if (stream == null || string.IsNullOrEmpty(fileName))
+                {
+                    Console.WriteLine("⚠️ No image found in MongoDB.");
+                    await BotLogger.LogImagePostAsync("N/A", false);
+                    return;
+                }
+
+                var primaryChannel = await Client.GetChannelAsync(discordConfigData.AnnouncementChannelID);
+                var secondaryChannel = await Client.GetChannelAsync(discordConfigData.ChannelID);
 
                 var messageBuilder = new DiscordMessageBuilder()
                     .WithContent("Here’s a new image!")
                     .AddFile(fileName, stream);
 
-                await channel.SendMessageAsync(messageBuilder);
-                stream.Dispose();
+                // Send to primary channel
+                await primaryChannel.SendMessageAsync(messageBuilder);
+                await BotLogger.LogImagePostAsync(fileName, true, primaryChannel.Name);
 
-                await BotLogger.LogImagePostAsync(fileName, true, channel.Name);
+                // Rewind stream for second send
+                stream.Position = 0;
+
+                await secondaryChannel.SendMessageAsync(new DiscordMessageBuilder()
+                    .WithContent("Here’s a new image!")
+                    .AddFile(fileName, stream));
+                await BotLogger.LogImagePostAsync(fileName, true, secondaryChannel.Name);
+
+                stream.Dispose();
             }
             catch (Exception ex)
             {
