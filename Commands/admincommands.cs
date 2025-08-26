@@ -244,10 +244,55 @@ namespace TheCloud.Commands
         }
 
         [SlashCommand("selfupdate", "Pull latest code and relaunch bot")]
-        public async Task SelfUpdateAsync(InteractionContext ctx)
+        public async Task SelfUpdateAsync(InteractionContext ctx,
+      [Option("hours", "Hours until update")] long hours = 0,
+      [Option("minutes", "Minutes until update")] long minutes = 0,
+      [Option("seconds", "Seconds until update")] long seconds = 0,
+      [Option("instant", "Update immediately")] bool instant = false)
         {
-            await ctx.CreateResponseAsync("🔄 Starting self-update...");
-            await BotLogger.LogEventAsync("🧪 SelfUpdate: Starting update flow...");
+            if (!IsAuthorized(ctx))
+            {
+                await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder()
+                    .WithContent("❌ You are not authorized to use this command.")
+                    .AsEphemeral());
+                return;
+            }
+
+            var totalDelay = TimeSpan.FromHours(hours) + TimeSpan.FromMinutes(minutes) + TimeSpan.FromSeconds(seconds);
+            if (instant) totalDelay = TimeSpan.Zero;
+
+            if (totalDelay.TotalSeconds <= 0 && !instant)
+            {
+                await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder()
+                    .WithContent("❌ Please specify a delay greater than 0 or use instant.")
+                    .AsEphemeral());
+                return;
+            }
+
+            var updateTime = DateTime.UtcNow.Add(totalDelay);
+            string delayMessage = instant
+                ? "⏱ Updating immediately..."
+                : $"✅ Update scheduled in {totalDelay.TotalSeconds:F0} second(s). Announcement sent.";
+
+            // Tell the admin user
+            await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder()
+                .WithContent(delayMessage)
+                .AsEphemeral());
+
+            // Announce to your configured announcement channel
+            await AnnounceAsync(ctx, "Self-Update", totalDelay, updateTime);
+
+            await BotLogger.LogCommandAsync("selfupdate", ctx.User.Username, ctx.User.Id);
+            await BotLogger.LogEventAsync($"🧪 SelfUpdate scheduled for {updateTime:u}");
+
+            // Wait before update (if delay set)
+            if (totalDelay.TotalMilliseconds > 0)
+            {
+                await BotLogger.LogEventAsync($"Waiting {totalDelay.TotalSeconds:F0} second(s) before self-update...");
+                await Task.Delay(totalDelay);
+            }
+
+            await BotLogger.LogEventAsync("🔄 SelfUpdate: Starting update flow...");
 
             try
             {
@@ -255,7 +300,7 @@ namespace TheCloud.Commands
                 if (!synced)
                 {
                     await BotLogger.LogEventAsync("❌ SelfUpdate: Git sync failed.");
-                    await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("❌ Git sync failed."));
+                    await AnnounceAsync(ctx, "❌ Update failed: Git sync error.", TimeSpan.Zero, DateTime.UtcNow);
                     return;
                 }
 
@@ -268,7 +313,7 @@ namespace TheCloud.Commands
                 if (!built || string.IsNullOrEmpty(dllPath))
                 {
                     await BotLogger.LogEventAsync("❌ SelfUpdate: Build failed.");
-                    await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("❌ Build failed."));
+                    await AnnounceAsync(ctx, "❌ Update failed: Build error.", TimeSpan.Zero, DateTime.UtcNow);
                     return;
                 }
 
@@ -278,17 +323,17 @@ namespace TheCloud.Commands
                 if (!relaunched)
                 {
                     await BotLogger.LogEventAsync("❌ SelfUpdate: Relaunch failed.");
-                    await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("❌ Relaunch failed."));
+                    await AnnounceAsync(ctx, "❌ Update failed: Relaunch error.", TimeSpan.Zero, DateTime.UtcNow);
                     return;
                 }
 
                 await BotLogger.LogEventAsync("✅ SelfUpdate: Update complete.");
-                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("✅ Update complete. Relaunching..."));
+                await AnnounceAsync(ctx, "✅ Update complete. Bot is relaunching...", TimeSpan.Zero, DateTime.UtcNow);
             }
             catch (Exception ex)
             {
-                await BotLogger.LogEventAsync($"❌ SelfUpdate: Exception occurred: {ex.Message}");
-                await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent("❌ Update crashed."));
+                await BotLogger.LogEventAsync($"❌ SelfUpdate: Exception occurred: {ex}");
+                await AnnounceAsync(ctx, "❌ Update crashed with an exception.", TimeSpan.Zero, DateTime.UtcNow);
             }
         }
 
