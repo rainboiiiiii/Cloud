@@ -157,6 +157,91 @@ namespace TheCloud.Commands
             Environment.Exit(0);
         }
 
+        [SlashCommand("restart", "Admin-only command to restart the bot")]
+        public async Task Restart(InteractionContext ctx,
+    [Option("hours", "Hours until restart")] long hours = 0,
+    [Option("minutes", "Minutes until restart")] long minutes = 0,
+    [Option("seconds", "Seconds until restart")] long seconds = 0,
+    [Option("instant", "Restart immediately")] bool instant = false)
+        {
+            if (!IsAuthorized(ctx))
+            {
+                await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder()
+                    .WithContent("❌ You are not authorized to use this command.")
+                    .AsEphemeral());
+                return;
+            }
+
+            var totalDelay = TimeSpan.FromHours(hours) + TimeSpan.FromMinutes(minutes) + TimeSpan.FromSeconds(seconds);
+            if (instant) totalDelay = TimeSpan.Zero;
+
+            if (totalDelay.TotalSeconds <= 0 && !instant)
+            {
+                await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder()
+                    .WithContent("❌ Please specify a delay greater than 0 or use instant.")
+                    .AsEphemeral());
+                return;
+            }
+
+            // Log restart request
+            await BotLogger.LogCommandAsync("restart", ctx.User.Username, ctx.User.Id);
+            var restartTime = DateTime.UtcNow.Add(totalDelay);
+
+            // Announce the restart
+            await AnnounceAsync(ctx, "Restarting", totalDelay, restartTime);
+
+            string delayMessage = instant
+                ? "⏱ Restarting immediately..."
+                : $"✅ Restart scheduled in {totalDelay.TotalSeconds:F0} second(s). Announcement sent.";
+
+            await ctx.CreateResponseAsync(new DiscordInteractionResponseBuilder()
+                .WithContent(delayMessage)
+                .AsEphemeral());
+
+            await BotLogger.LogEventAsync($"Restart scheduled for {restartTime:u}");
+
+            // Wait for the scheduled delay
+            if (totalDelay.TotalMilliseconds > 0)
+            {
+                await BotLogger.LogEventAsync($"Waiting {totalDelay.TotalSeconds:F0} second(s) before restarting.");
+                await Task.Delay(totalDelay);
+            }
+
+            // Log disconnect
+            await BotLogger.LogEventAsync("Disconnecting from Discord...");
+            await ctx.Client.DisconnectAsync();
+
+            // Log self-restart attempt
+            await BotLogger.LogEventAsync("Attempting to restart the bot...");
+
+            try
+            {
+                // Start a new process for the same bot executable
+                var exePath = Process.GetCurrentProcess().MainModule?.FileName;
+                if (!string.IsNullOrEmpty(exePath))
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = exePath,
+                        UseShellExecute = true, // ensures it runs as a normal process
+                        WorkingDirectory = Environment.CurrentDirectory
+                    });
+                    await BotLogger.LogEventAsync($"Successfully launched new bot process: {exePath}");
+                }
+                else
+                {
+                    await BotLogger.LogEventAsync("❌ Could not find executable path to restart.");
+                }
+            }
+            catch (Exception ex)
+            {
+                await BotLogger.LogEventAsync($"❌ Failed to restart bot: {ex}");
+            }
+
+            // Exit current process
+            await BotLogger.LogEventAsync("Exiting current bot process...");
+            Environment.Exit(0);
+        }
 
         [SlashCommand("selfupdate", "Pull latest code and relaunch bot")]
         public async Task SelfUpdateAsync(InteractionContext ctx)
