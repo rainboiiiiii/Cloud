@@ -24,4 +24,9 @@ public class MongoLogger
         await _collection.InsertOneAsync(doc);
         Console.WriteLine($"[MongoLog] {type}: {message}");
     }
+
+    internal async Task LogEventAsync(string v)
+    {
+        throw new NotImplementedException();
+    }
 }
