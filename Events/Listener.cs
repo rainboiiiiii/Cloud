@@ -113,7 +113,7 @@ namespace TheCloud
 
             if (bestInquiry4 != null && bestInquiry4.Score > 85)
             {
-                var responses = BotResponses.InquiryResponses(displayName);
+                var responses = BotResponses.WhatCanCloudDoResponse(displayName);
                 string selected = responses[random.Next(responses.Count)];
                 await e.Message.RespondAsync(selected);
 
@@ -352,5 +352,6 @@ namespace TheCloud
 
 
             }
+        }
     }
 }

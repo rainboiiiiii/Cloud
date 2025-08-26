@@ -73,7 +73,7 @@ namespace TheCloud.Listener
         public static List<string> HelpResponses(string username) => new()
         {
 
-            $"Hey there, {username}! I currently do not possess the power nor knowledge to do live support just yet. However, feel free to open a ticket in <1148356467498438718> and a staff member will be happy to assist!"
+            $"Hey there, {username}! I currently do not possess the power nor knowledge to do live support just yet. However, feel free to open a ticket in <#1148356467498438718> and a staff member will be happy to assist!"
 
         };
 
@@ -107,27 +107,27 @@ namespace TheCloud.Listener
 
         public static List<string> MaintResponses(string username) => new()
         {
-            $"We always notify users in advance about scheduled maintenance through our official channels.If you experience any issues after maintenance, please reach out to our support team for assistance",
+            $"We always notify users in advance about scheduled maintenance through our official channels. If you experience any issues after maintenance, please reach out to our support team for assistance",
 
         };
 
         public static List<string> OwnerResponses(string username) => new()
         {
-            $"The owner is a cool person, {username}.",
-            $"I hear the owner is pretty awesome, {username}.",
-            $"The owner is the best, {username}.",
-            $"I have heard great things about the owner, {username}.",
-            $"The owner is a legend, {username}.",
+            $"I once didn't listen to Rain. I regret not listening to him, so make sure you listen to him, {username}.",
+            $"I hear Rain is pretty decent.",
+            $"He's ok.",
+            $"I have heard great things about Rain, although he isn't afraid to be outspoken, {username}.",
+            $"I think Rain deserves slightly more recognition than most realize, {username}.",
             $"The owner is a rockstar, {username}.",
-            $"The owner is a genius, {username}.",
-            $"The owner is a visionary, {username}.",
-            $"The owner is a hero, {username}.",
-            $"The owner is a superstar, {username}.",
-            $"The owner is a mastermind, {username}.",
-            $"The owner is a trailblazer, {username}.",
-            $"The owner is a pioneer, {username}.",
-            $"The owner is a game-changer, {username}.",
-            $"The owner is a force to be reckoned with, {username}."
+            $"Rain is a genius... 75% of the time.",
+            $"He is a visionary, {username}.",
+            $"He's my hero, {username}.",
+            $"He may not be a superstar, but he's my inspiration!",
+            $"I think he is great at helping others, so he's ok I guess.",
+            $"Rain is pretty chill with most. Just don't get on his bad side. You'd regret it, {username}.",
+            $"Rain is a pioneer, {username}.",
+            $"Ask me later, I'm on a date with him right now and I don't want to stroke his ego.",
+            $"Rain is genuinely a force to be reckoned with, {username}."
         };
 
         public static List<string> CloudHelpResponses(string username) => new()
