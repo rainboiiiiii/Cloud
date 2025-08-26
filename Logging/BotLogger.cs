@@ -109,7 +109,7 @@ namespace TheCloud.Logging
 
         private static IMongoCollection<ConversationLog> _conversationCollection;
 
-        public static void Initialize(IMongoDatabase db)
+        public static void Initialize(string mONGO_URI, IMongoDatabase db)
         {
             _conversationCollection = db.GetCollection<ConversationLog>("Conversations");
         }
