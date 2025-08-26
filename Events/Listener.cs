@@ -171,7 +171,7 @@ namespace TheCloud
             var inquiries7 = new List<string> { "when is the next maint, cloud?" };
             var bestInquiry7 = Process.ExtractOne(userInput, inquiries7);
 
-            if (bestInquiry7 != null && bestInquiry7.Score > 85)
+            if (bestInquiry7 != null && bestInquiry7.Score > 100)
             {
                 var responses = BotResponses.MaintResponses(displayName);
                 string selected = responses[random.Next(responses.Count)];
