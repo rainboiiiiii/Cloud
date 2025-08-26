@@ -9,13 +9,13 @@ namespace TheCloud.Listener
 {
 
     public static class BotResponses
-       
+
     {
 
 
         public static List<string> GreetingResponses(string username) => new()
         {
-            
+
             $"Hello, {username}! 👋",
             $"Hiya {username}, how's it going?",
             $"Yo {username}, what's up?",
@@ -74,7 +74,7 @@ namespace TheCloud.Listener
         {
 
             $"Hey there, {username}! I currently do not possess the power nor knowledge to do live support just yet. However, feel free to open a ticket in <1148356467498438718> and a staff member will be happy to assist!"
-            
+
         };
 
         public static List<string> FreeGpResponses(string username) => new()
@@ -140,5 +140,91 @@ namespace TheCloud.Listener
             $"Rain cannot send anything, Spanky and Macie only send gifts usually after maintenance or special events. Please do not ask for free stuff, {username}.",
             $"Absolutely not, {username}."
         };
+
+        public static List<string> UnknownCommandResponses(string username) => new()
+        {
+            $"I'm not sure what you mean, {username}. Could you please rephrase?",
+            $"Sorry, {username}, I didn't catch that. Can you try again?",
+            $"Hmm, that doesn't seem to be a valid command, {username}.",
+            $"I'm still learning, {username}. Could you try a different command?",
+            $"That command is unfamiliar to me, {username}. Maybe check the help section?",
+            $"Oops! I don't recognize that command, {username}.",
+            $"That doesn't seem right, {username}. Try using /help to see available commands.",
+            $"I'm not programmed to understand that command yet, {username}.",
+            $"That command is outside my capabilities, {username}.",
+            $"I wish I could help with that, {username}, but I don't know how.",
+            $"That command is a mystery to me, {username}.",
+            $"I'm sorry, {username}, but I can't process that command.",
+            $"That command is beyond my current functions, {username}.",
+            $"I don't have the ability to execute that command, {username}.",
+            $"That command is not in my repertoire, {username}."
+        };
+
+        public static List<string> ThanksResponses(string username) => new()
+        {
+            $"You're welcome, {username}!",
+            $"No problem, {username}!",
+            $"Anytime, {username}!",
+            $"Glad I could help, {username}!",
+            $"My pleasure, {username}!",
+            $"Don't mention it, {username}!",
+            $"Happy to assist, {username}!",
+            $"Always here for you, {username}!",
+            $"You got it, {username}!",
+            $"Sure thing, {username}!"
+        };
+
+        public static List<string> SorryResponses(string username) => new()
+        {
+            $"No worries, {username}!",
+            $"It's all good, {username}!",
+            $"Don't sweat it, {username}!",
+            $"All forgiven, {username}!",
+            $"No harm done, {username}!",
+            $"It's okay, {username}!",
+            $"We're cool, {username}!",
+            $"No big deal, {username}!",
+            $"It's fine, {username}!",
+            $"All is well, {username}!"
+        };
+
+        public static List<string> ByeResponses(string username) => new()
+        {
+            $"Goodbye, {username}! 👋",
+            $"See you later, {username}!",
+            $"Take care, {username}!",
+            $"Catch you later, {username}!",
+            $"Farewell, {username}!",
+            $"Until next time, {username}!",
+            $"Have a great day, {username}!",
+            $"Stay safe, {username}!",
+            $"See you soon, {username}!",
+            $"Bye for now, {username}!"
+        };
+
+
+        public static List<string> FreeGPResponses(string username) => new()
+        {
+            $"No way, {username}!",
+            $"Absolutely not, {username}!",
+            $"Not a chance, {username}!",
+            $"Nope, {username}!",
+            $"Negative, {username}!",
+            $"I don't think so, {username}!",
+            $"Certainly not, {username}!",
+            $"No can do, {username}!",
+            $"Not in a million years, {username}!",
+            $"No sir/ma'am, {username}!"
+        };
+
+        public static List<string> WhatCanCloudDoResponse(string username) => new()
+        {
+
+            $"I'm here to help you, {username}! You can ask me about my features using /info, get assistance with /help, or contact support with /support. I can help as much as my owner allows me to!"
+            };
     }
 }
+
+
+
+    
