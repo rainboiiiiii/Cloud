@@ -228,13 +228,13 @@ namespace TheCloud
             }
 
             // Cloud keyword greetings
-            var keywords = new List<string> { "cloud" };
+            var keywords = new List<string> { "cloud bot" };
             bool keywordFound = keywords.Any(k => userInput.Contains(k));
 
             if (!keywordFound)
                 return;
 
-            var greetings = new List<string> { "hey cloud", "hello cloud" };
+            var greetings = new List<string> { "hey cloud bot", "hello cloud bot" };
             var bestGreeting = Process.ExtractOne(userInput, greetings);
 
             if (bestGreeting != null && bestGreeting.Score > 85)
@@ -255,7 +255,7 @@ namespace TheCloud
             }
 
             // Inquiry responses
-            var inquiries = new List<string> { "how are you cloud" };
+            var inquiries = new List<string> { "how are you cloud bot" };
             var bestInquiry = Process.ExtractOne(userInput, inquiries);
 
             if (bestInquiry != null && bestInquiry.Score > 85)
