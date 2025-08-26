@@ -50,6 +50,183 @@ namespace TheCloud
                 );
             }
 
+            var inquiries2 = new List<string> { "can I get new bp free?" };
+            var bestInquiry2 = Process.ExtractOne(userInput, inquiries2);
+
+            if (bestInquiry2 != null && bestInquiry2.Score > 70)
+            {
+                var responses = BotResponses.FreeGpResponses(displayName);
+                string selected = responses[random.Next(responses.Count)];
+                await e.Message.RespondAsync(selected);
+
+                await BotLogger.LogConversationAsync(
+                    e.Guild.Id,
+                    e.Channel.Id,
+                    e.Author.Id,
+                    displayName,
+                    e.Message.Content,
+                    selected
+                );
+            }
+
+            var inquiries3 = new List<string> { "what is a kilometer" };
+            var bestInquiry3 = Process.ExtractOne(userInput, inquiries3);
+
+            if (bestInquiry3 != null && bestInquiry3.Score > 70)
+            {
+                var responses = BotResponses.KilometerResponses(displayName);
+                string selected = responses[random.Next(responses.Count)];
+                await e.Message.RespondAsync(selected);
+
+                await BotLogger.LogConversationAsync(
+                    e.Guild.Id,
+                    e.Channel.Id,
+                    e.Author.Id,
+                    displayName,
+                    e.Message.Content,
+                    selected
+                );
+
+            }
+
+            var inquiries4 = new List<string> { "what can you do, cloud?" };
+            var bestInquiry4 = Process.ExtractOne(userInput, inquiries4);
+
+            if (bestInquiry4 != null && bestInquiry4.Score > 70)
+            {
+                var responses = BotResponses.InquiryResponses(displayName);
+                string selected = responses[random.Next(responses.Count)];
+                await e.Message.RespondAsync(selected);
+
+                await BotLogger.LogConversationAsync(
+                    e.Guild.Id,
+                    e.Channel.Id,
+                    e.Author.Id,
+                    displayName,
+                    e.Message.Content,
+                    selected
+                );
+
+            }
+
+            var inquiries5 = new List<string> { "I need help, cloud" };
+            var bestInquiry5 = Process.ExtractOne(userInput, inquiries5);
+
+            if (bestInquiry5 != null && bestInquiry5.Score > 70)
+            {
+                var responses = BotResponses.HelpResponses(displayName);
+                string selected = responses[random.Next(responses.Count)];
+                await e.Message.RespondAsync(selected);
+
+                await BotLogger.LogConversationAsync(
+                    e.Guild.Id,
+                    e.Channel.Id,
+                    e.Author.Id,
+                    displayName,
+                    e.Message.Content,
+                    selected
+                );
+
+            }
+
+            var inquiries6 = new List<string> { "are you friends with Hanni, cloud?" };
+            var bestInquiry6 = Process.ExtractOne(userInput, inquiries6);
+
+            if (bestInquiry6 != null && bestInquiry6.Score > 70)
+            {
+                var responses = BotResponses.HanniResponses(displayName);
+                string selected = responses[random.Next(responses.Count)];
+                await e.Message.RespondAsync(selected);
+
+                await BotLogger.LogConversationAsync(
+                    e.Guild.Id,
+                    e.Channel.Id,
+                    e.Author.Id,
+                    displayName,
+                    e.Message.Content,
+                    selected
+                );
+
+            }
+
+            var inquiries7 = new List<string> { "when is the next maint, cloud?" };
+            var bestInquiry7 = Process.ExtractOne(userInput, inquiries7);
+
+            if (bestInquiry7 != null && bestInquiry7.Score > 75)
+            {
+                var responses = BotResponses.MaintResponses(displayName);
+                string selected = responses[random.Next(responses.Count)];
+                await e.Message.RespondAsync(selected);
+
+                await BotLogger.LogConversationAsync(
+                    e.Guild.Id,
+                    e.Channel.Id,
+                    e.Author.Id,
+                    displayName,
+                    e.Message.Content,
+                    selected
+                );
+
+            }
+
+            var inquiries8 = new List<string> { "i want to help you, cloud" };
+            var bestInquiry8 = Process.ExtractOne(userInput, inquiries8);
+
+            if (bestInquiry8 != null && bestInquiry8.Score > 70)
+            {
+                var responses = BotResponses.InquiryResponses(displayName);
+                string selected = responses[random.Next(responses.Count)];
+                await e.Message.RespondAsync(selected);
+
+                await BotLogger.LogConversationAsync(
+                    e.Guild.Id,
+                    e.Channel.Id,
+                    e.Author.Id,
+                    displayName,
+                    e.Message.Content,
+                    selected
+                );
+
+            }
+
+            var inquiries9 = new List<string> { "i want free stuff, cloud" };
+            var bestInquiry9 = Process.ExtractOne(userInput, inquiries9);
+
+            if (bestInquiry9 != null && bestInquiry9.Score > 70)
+            {
+                var responses = BotResponses.InquiryResponses(displayName);
+                string selected = responses[random.Next(responses.Count)];
+                await e.Message.RespondAsync(selected);
+
+                await BotLogger.LogConversationAsync(
+                    e.Guild.Id,
+                    e.Channel.Id,
+                    e.Author.Id,
+                    displayName,
+                    e.Message.Content,
+                    selected
+                );
+
+            }
+
+            var inquiries10 = new List<string> { "what do you think of rain, cloud?" };
+            var bestInquiry10 = Process.ExtractOne(userInput, inquiries10);
+
+            if (bestInquiry10 != null && bestInquiry10.Score > 70)
+            {
+                var responses = BotResponses.OwnerResponses(displayName);
+                string selected = responses[random.Next(responses.Count)];
+                await e.Message.RespondAsync(selected);
+                await BotLogger.LogConversationAsync(
+                    e.Guild.Id,
+                    e.Channel.Id,
+                    e.Author.Id,
+                    displayName,
+                    e.Message.Content,
+                    selected
+                );
+            }
+
             // Cloud keyword greetings
             var keywords = new List<string> { "cloud" };
             bool keywordFound = keywords.Any(k => userInput.Contains(k));
@@ -97,182 +274,7 @@ namespace TheCloud
                 );
             }
 
-            var inquiries2 = new List<string> { "can I get new bp free?" };
-            var bestInquiry2 = Process.ExtractOne(userInput, inquiries2);
-
-            if (bestInquiry2 != null && bestInquiry2.Score > 70)
-            {
-                var responses = BotResponses.FreeGpResponses(displayName);
-                string selected = responses[random.Next(responses.Count)];
-                await e.Message.RespondAsync(selected);
-
-                await BotLogger.LogConversationAsync(
-                    e.Guild.Id,
-                    e.Channel.Id,
-                    e.Author.Id,
-                    displayName,
-                    e.Message.Content,
-                    selected
-                );
-            }
-
-            var inquiries3 = new List<string> { "what is a kilometer" };
-            var bestInquiry3 = Process.ExtractOne(userInput, inquiries3);
-
-            if (bestInquiry3 != null && bestInquiry.Score > 70)
-            {
-                var responses = BotResponses.KilometerResponses(displayName);
-                string selected = responses[random.Next(responses.Count)];
-                await e.Message.RespondAsync(selected);
-
-                await BotLogger.LogConversationAsync(
-                    e.Guild.Id,
-                    e.Channel.Id,
-                    e.Author.Id,
-                    displayName,
-                    e.Message.Content,
-                    selected
-                );
-
-            }
-
-            var inquiries4 = new List<string> { "what can you do, cloud?" };
-            var bestInquiry4 = Process.ExtractOne(userInput, inquiries4);
-
-            if (bestInquiry4 != null && bestInquiry.Score > 70)
-            {
-                var responses = BotResponses.InquiryResponses(displayName);
-                string selected = responses[random.Next(responses.Count)];
-                await e.Message.RespondAsync(selected);
-
-                await BotLogger.LogConversationAsync(
-                    e.Guild.Id,
-                    e.Channel.Id,
-                    e.Author.Id,
-                    displayName,
-                    e.Message.Content,
-                    selected
-                );
-
-            }
-
-            var inquiries5 = new List<string> { "I need help, cloud" };
-            var bestInquiry5 = Process.ExtractOne(userInput, inquiries5);
-
-            if (bestInquiry5 != null && bestInquiry.Score > 70)
-            {
-                var responses = BotResponses.HelpResponses(displayName);
-                string selected = responses[random.Next(responses.Count)];
-                await e.Message.RespondAsync(selected);
-
-                await BotLogger.LogConversationAsync(
-                    e.Guild.Id,
-                    e.Channel.Id,
-                    e.Author.Id,
-                    displayName,
-                    e.Message.Content,
-                    selected
-                );
-
-            }
-
-            var inquiries6 = new List<string> { "are you friends with Hanni, cloud?" };
-            var bestInquiry6 = Process.ExtractOne(userInput, inquiries6);
-
-            if (bestInquiry6 != null && bestInquiry.Score > 70)
-            {
-                var responses = BotResponses.HanniResponses(displayName);
-                string selected = responses[random.Next(responses.Count)];
-                await e.Message.RespondAsync(selected);
-
-                await BotLogger.LogConversationAsync(
-                    e.Guild.Id,
-                    e.Channel.Id,
-                    e.Author.Id,
-                    displayName,
-                    e.Message.Content,
-                    selected
-                );
-
-            }
-
-            var inquiries7 = new List<string> { "when is the next maint, cloud?" };
-            var bestInquiry7 = Process.ExtractOne(userInput, inquiries7);
-
-            if (bestInquiry7 != null && bestInquiry.Score > 75)
-            {
-                var responses = BotResponses.MaintResponses(displayName);
-                string selected = responses[random.Next(responses.Count)];
-                await e.Message.RespondAsync(selected);
-
-                await BotLogger.LogConversationAsync(
-                    e.Guild.Id,
-                    e.Channel.Id,
-                    e.Author.Id,
-                    displayName,
-                    e.Message.Content,
-                    selected
-                );
-
-            }
-
-            var inquiries8 = new List<string> { "i want to help you, cloud" };
-            var bestInquiry8 = Process.ExtractOne(userInput, inquiries8);
-
-            if (bestInquiry8 != null && bestInquiry.Score > 70)
-            {
-                var responses = BotResponses.InquiryResponses(displayName);
-                string selected = responses[random.Next(responses.Count)];
-                await e.Message.RespondAsync(selected);
-
-                await BotLogger.LogConversationAsync(
-                    e.Guild.Id,
-                    e.Channel.Id,
-                    e.Author.Id,
-                    displayName,
-                    e.Message.Content,
-                    selected
-                );
-
-            }
-
-            var inquiries9 = new List<string> { "i want free stuff, cloud" };
-            var bestInquiry9 = Process.ExtractOne(userInput, inquiries9);
-
-            if (bestInquiry9 != null && bestInquiry.Score > 70)
-            {
-                var responses = BotResponses.InquiryResponses(displayName);
-                string selected = responses[random.Next(responses.Count)];
-                await e.Message.RespondAsync(selected);
-
-                await BotLogger.LogConversationAsync(
-                    e.Guild.Id,
-                    e.Channel.Id,
-                    e.Author.Id,
-                    displayName,
-                    e.Message.Content,
-                    selected
-                );
-
-            }
-
-            var inquiries10 = new List<string> { "what do you think of rain, cloud?" };
-            var bestInquiry10 = Process.ExtractOne(userInput, inquiries10);
-
-            if (bestInquiry10 != null && bestInquiry.Score > 70)
-            {
-                var responses = BotResponses.OwnerResponses(displayName);
-                string selected = responses[random.Next(responses.Count)];
-                await e.Message.RespondAsync(selected);
-                await BotLogger.LogConversationAsync(
-                    e.Guild.Id,
-                    e.Channel.Id,
-                    e.Author.Id,
-                    displayName,
-                    e.Message.Content,
-                    selected
-                );
-            }
+           
 
 
 
