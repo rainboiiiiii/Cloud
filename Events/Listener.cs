@@ -72,7 +72,7 @@ namespace TheCloud
             var inquiries11 = new List<string> { "can I get free GP?" };
             var bestInquiry11 = Process.ExtractOne(userInput, inquiries11);
 
-            if (bestInquiry11 != null && bestInquiry11.Score > 93)
+            if (bestInquiry11 != null && bestInquiry11.Score > 98)
             {
                 var responses = BotResponses.FreeGPResponses(displayName);
                 string selected = responses[random.Next(responses.Count)];
