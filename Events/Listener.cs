@@ -50,7 +50,7 @@ namespace TheCloud
                 );
             }
 
-            var inquiries2 = new List<string> { "can I get new bp free?" };
+            var inquiries2 = new List<string> { "can I get the new bp for free?" };
             var bestInquiry2 = Process.ExtractOne(userInput, inquiries2);
 
             if (bestInquiry2 != null && bestInquiry2.Score > 70)
@@ -72,7 +72,7 @@ namespace TheCloud
             var inquiries11 = new List<string> { "can I get free GP?" };
             var bestInquiry11 = Process.ExtractOne(userInput, inquiries11);
 
-            if (bestInquiry11 != null && bestInquiry11.Score > 70)
+            if (bestInquiry11 != null && bestInquiry11.Score > 93)
             {
                 var responses = BotResponses.FreeGPResponses(displayName);
                 string selected = responses[random.Next(responses.Count)];
