@@ -22,8 +22,8 @@ namespace TheCloud
         private static CommandsNextExtension Commands { get; set; }
         private static MongoImages _mongoImages;
         private static JSONStructure discordConfigData;
-        
 
+        public static ulong ticketChannelId = 123456789012345678; // Replace with your actual channel ID
         public static RateLimiter RateLimiter = new RateLimiter(TimeSpan.FromSeconds(3));
 
         static async Task Main(string[] args)
