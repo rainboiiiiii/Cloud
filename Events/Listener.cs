@@ -128,7 +128,7 @@ namespace TheCloud
 
             }
 
-            var inquiries5 = new List<string> { "I need help, cloud" };
+            var inquiries5 = new List<string> { "I need help" };
             var bestInquiry5 = Process.ExtractOne(userInput, inquiries5);
 
             if (bestInquiry5 != null && bestInquiry5.Score > 85)
