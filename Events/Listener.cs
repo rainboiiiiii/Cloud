@@ -253,7 +253,7 @@ namespace TheCloud
             if (!keywordFound)
                 return;
 
-            var greetings = new List<string> { "cloud bot" };
+            var greetings = new List<string> { "hi cloud bot" };
             var bestGreeting = Process.ExtractOne(userInput, greetings);
 
             if (bestGreeting != null && bestGreeting.Score > 90)
