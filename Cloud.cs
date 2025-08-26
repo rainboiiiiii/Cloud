@@ -108,7 +108,6 @@ namespace TheCloud
             Client.Ready += async (sender, e) =>
             {
                 await BotLogger.LogEventAsync("Bot is online and ready.");
-                await PostRandomImageAsync();
             };
 
             // ✅ Hook up your custom listener
