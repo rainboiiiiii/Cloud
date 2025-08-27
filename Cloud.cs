@@ -110,18 +110,6 @@ namespace TheCloud
                 await BotLoggerV2.LogEventAsync("Bot is online and ready.");
             };
 
-            // ✅ Hook up your custom listener
-            var handler = new MessageHandler();
-            Client.MessageCreated += handler.OnMessageCreated;
-
-            Client.MessageCreated += async (client, e) =>
-            {
-                if (e.Author.IsBot) return;
-                if (e.Message.Content == "hello Cloud")
-                {
-                    await e.Message.RespondAsync($"Hi there, {e.Author.Username}!");
-                }
-            };
 
             var timer = new System.Timers.Timer(TimeSpan.FromHours(3).TotalMilliseconds);
             timer.Elapsed += async (sender, e) =>
