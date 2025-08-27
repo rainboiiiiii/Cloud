@@ -120,37 +120,11 @@ namespace TheCloud
                 EnableDefaultHelp = true
             };
 
-            Client.Ready += async (sender, e) =>
-            Client.MessageCreated += async (client, e) =>
-            {
-                try
-                {
-                    if (e.Author.IsBot) return;
-
-                    Console.WriteLine($"📩 Message from {e.Author.Username}: {e.Message.Content}");
-
-                    if (e.Message.Content.ToLower().Contains("hello cloud"))
-                    {
-                        await e.Message.RespondAsync($"👋 Hey {e.Author.Username}, Cloud is listening.");
-                        await BotLoggerV2.LogConversationAsync(
-                            e.Author.Id,
-                            e.Author.Username,
-                            e.Message.Content,
-                            "message_created",
-                            e.Channel.Id,
-                            e.Guild?.Id ?? 0
-                        );
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"❌ Listener error: {ex.Message}");
-                    await BotLoggerV2.LogEventAsync($"Listener error: {ex}", "MessageCreated");
-                }
-            };
-            {
-                await BotLoggerV2.LogEventAsync("Bot is online and ready.");
-            };
+           
+           Client.Ready += async (sender, e) =>
+           {
+               await BotLoggerV2.LogEventAsync("Bot is online and ready.");
+           };
 
             var timer = new System.Timers.Timer(TimeSpan.FromHours(3).TotalMilliseconds);
             timer.Elapsed += async (sender, e) =>

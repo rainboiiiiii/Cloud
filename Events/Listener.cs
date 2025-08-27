@@ -54,7 +54,7 @@ namespace TheCloud
                 var inquiries2 = new List<string> { "can I get the new bp for free?" };
                 var bestInquiry2 = Process.ExtractOne(userInput, inquiries2);
 
-                if (bestInquiry2 != null && bestInquiry2.Score > 70)
+                if (bestInquiry2 != null && bestInquiry2.Score > 100)
                 {
                     var responses = BotResponses.FreeBPResponses(displayName);
                     string selected = responses[random.Next(responses.Count)];
@@ -171,7 +171,7 @@ namespace TheCloud
                 var inquiries7 = new List<string> { "when is the next maint, cloud?" };
                 var bestInquiry7 = Process.ExtractOne(userInput, inquiries7);
 
-                if (bestInquiry7 != null && bestInquiry7.Score > 100)
+                if (bestInquiry7 != null && bestInquiry7.Score > 80)
                 {
                     var responses = BotResponses.MaintResponses(displayName);
                     string selected = responses[random.Next(responses.Count)];
@@ -188,10 +188,10 @@ namespace TheCloud
 
                 }
 
-                var inquiries8 = new List<string> { "i want to help you, cloud" };
+                var inquiries8 = new List<string> { "i want to support development, cloud" };
                 var bestInquiry8 = Process.ExtractOne(userInput, inquiries8);
 
-                if (bestInquiry8 != null && bestInquiry8.Score > 85)
+                if (bestInquiry8 != null && bestInquiry8.Score > 80)
                 {
                     var responses = BotResponses.CloudHelpResponses(displayName);
                     string selected = responses[random.Next(responses.Count)];
@@ -211,7 +211,7 @@ namespace TheCloud
                 var inquiries9 = new List<string> { "i want free stuff, cloud" };
                 var bestInquiry9 = Process.ExtractOne(userInput, inquiries9);
 
-                if (bestInquiry9 != null && bestInquiry9.Score > 85)
+                if (bestInquiry9 != null && bestInquiry9.Score > 90)
                 {
                     var responses = BotResponses.FreeStuffResponses(displayName);
                     string selected = responses[random.Next(responses.Count)];
