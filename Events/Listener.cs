@@ -51,10 +51,10 @@ namespace TheCloud
         );
                 }
 
-                var inquiries2 = new List<string> { "can I get the new bp for free?" };
+                var inquiries2 = new List<string> { "can I get the new plan for free?" };
                 var bestInquiry2 = Process.ExtractOne(userInput, inquiries2);
 
-                if (bestInquiry2 != null && bestInquiry2.Score > 100)
+                if (bestInquiry2 != null && bestInquiry2.Score > 90)
                 {
                     var responses = BotResponses.FreeBPResponses(displayName);
                     string selected = responses[random.Next(responses.Count)];
@@ -72,7 +72,7 @@ namespace TheCloud
                 var inquiries11 = new List<string> { "can I get free GP?" };
                 var bestInquiry11 = Process.ExtractOne(userInput, inquiries11);
 
-                if (bestInquiry11 != null && bestInquiry11.Score > 98)
+                if (bestInquiry11 != null && bestInquiry11.Score > 90)
                 {
                     var responses = BotResponses.FreeGPResponses(displayName);
                     string selected = responses[random.Next(responses.Count)];
@@ -111,7 +111,7 @@ namespace TheCloud
                 var inquiries4 = new List<string> { "what can you do, cloud?" };
                 var bestInquiry4 = Process.ExtractOne(userInput, inquiries4);
 
-                if (bestInquiry4 != null && bestInquiry4.Score > 85)
+                if (bestInquiry4 != null && bestInquiry4.Score > 90)
                 {
                     var responses = BotResponses.WhatCanCloudDoResponse(displayName);
                     string selected = responses[random.Next(responses.Count)];
@@ -148,10 +148,10 @@ namespace TheCloud
 
                 }
 
-                var inquiries6 = new List<string> { "are you friends with Hanni, cloud?" };
+                var inquiries6 = new List<string> { "are Hanni and Cloud friends?" };
                 var bestInquiry6 = Process.ExtractOne(userInput, inquiries6);
 
-                if (bestInquiry6 != null && bestInquiry6.Score > 80)
+                if (bestInquiry6 != null && bestInquiry6.Score > 90)
                 {
                     var responses = BotResponses.HanniResponses(displayName);
                     string selected = responses[random.Next(responses.Count)];
@@ -171,7 +171,7 @@ namespace TheCloud
                 var inquiries7 = new List<string> { "when is the next maint, cloud?" };
                 var bestInquiry7 = Process.ExtractOne(userInput, inquiries7);
 
-                if (bestInquiry7 != null && bestInquiry7.Score > 80)
+                if (bestInquiry7 != null && bestInquiry7.Score > 90)
                 {
                     var responses = BotResponses.MaintResponses(displayName);
                     string selected = responses[random.Next(responses.Count)];
@@ -191,7 +191,7 @@ namespace TheCloud
                 var inquiries8 = new List<string> { "i want to support development, cloud" };
                 var bestInquiry8 = Process.ExtractOne(userInput, inquiries8);
 
-                if (bestInquiry8 != null && bestInquiry8.Score > 80)
+                if (bestInquiry8 != null && bestInquiry8.Score > 90)
                 {
                     var responses = BotResponses.CloudHelpResponses(displayName);
                     string selected = responses[random.Next(responses.Count)];
@@ -231,7 +231,7 @@ namespace TheCloud
                 var inquiries10 = new List<string> { "what do you think of rain, cloud?" };
                 var bestInquiry10 = Process.ExtractOne(userInput, inquiries10);
 
-                if (bestInquiry10 != null && bestInquiry10.Score > 85)
+                if (bestInquiry10 != null && bestInquiry10.Score > 90)
                 {
                     var responses = BotResponses.OwnerResponses(displayName);
                     string selected = responses[random.Next(responses.Count)];
