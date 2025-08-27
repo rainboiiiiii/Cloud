@@ -244,12 +244,12 @@ namespace TheCloud.Commands
             Environment.Exit(0);
         }
 
-        [SlashCommand("selfupdate", "Pull latest code and relaunch bot")]
+        [SlashCommand("update", "Pulls the latest code, relaunches bot, and terminates old process")]
         public async Task SelfUpdateAsync(InteractionContext ctx,
-      [Option("hours", "Hours until update")] long hours = 0,
-      [Option("minutes", "Minutes until update")] long minutes = 0,
-      [Option("seconds", "Seconds until update")] long seconds = 0,
-      [Option("instant", "Update immediately")] bool instant = false)
+[Option("hours", "Hours until update")] long hours = 0,
+[Option("minutes", "Minutes until update")] long minutes = 0,
+[Option("seconds", "Seconds until update")] long seconds = 0,
+[Option("instant", "Update immediately")] bool instant = false)
         {
             if (!IsAuthorized(ctx))
             {
@@ -289,7 +289,7 @@ namespace TheCloud.Commands
             // Wait before update (if delay set)
             if (totalDelay.TotalMilliseconds > 0)
             {
-                await BotLoggerV2 .LogEventAsync($"Waiting {totalDelay.TotalSeconds:F0} second(s) before self-update...");
+                await BotLoggerV2.LogEventAsync($"Waiting {totalDelay.TotalSeconds:F0} second(s) before self-update...");
                 await Task.Delay(totalDelay);
             }
 
@@ -326,6 +326,22 @@ namespace TheCloud.Commands
                     await BotLoggerV2.LogEventAsync("❌ SelfUpdate: Relaunch failed.");
                     await AnnounceAsync(ctx, "❌ Update failed: Relaunch error.", TimeSpan.Zero, DateTime.UtcNow);
                     return;
+                }
+
+                // ✅ Relaunch succeeded, terminate old instance after a short grace period
+                await BotLoggerV2.LogEventAsync("🧪 SelfUpdate: Terminating old process...");
+                try
+                {
+                    _ = Task.Run(async () =>
+                    {
+                        await Task.Delay(2000); // 2s grace period to allow logs & announcements to flush
+                        var currentProcess = System.Diagnostics.Process.GetCurrentProcess();
+                        currentProcess.Kill();
+                    });
+                }
+                catch (Exception exTerm)
+                {
+                    await BotLoggerV2.LogEventAsync($"⚠️ Failed to terminate old instance: {exTerm.Message}");
                 }
 
                 await BotLoggerV2.LogEventAsync("✅ SelfUpdate: Update complete.");
