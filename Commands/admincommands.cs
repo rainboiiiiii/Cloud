@@ -289,7 +289,7 @@ namespace TheCloud.Commands
             // Wait before update (if delay set)
             if (totalDelay.TotalMilliseconds > 0)
             {
-                await BotLogger .LogEventAsync($"Waiting {totalDelay.TotalSeconds:F0} second(s) before self-update...");
+                await BotLoggerV2 .LogEventAsync($"Waiting {totalDelay.TotalSeconds:F0} second(s) before self-update...");
                 await Task.Delay(totalDelay);
             }
 
