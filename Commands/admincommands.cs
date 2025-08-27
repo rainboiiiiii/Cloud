@@ -11,6 +11,7 @@ using TheCloud.config;
 using TheCloud.Database;
 using TheCloud.Logging;
 using TheCloud.Utilities;
+using TheCloud.Logging.BotLogger;
 
 namespace TheCloud.Commands
 {

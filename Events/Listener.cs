@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using TheCloud;
 using TheCloud.Listener;
+using TheCloud.Logging.BotLogger;
 using TheCloud.Logging;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -41,13 +42,13 @@ namespace TheCloud
                 await e.Message.RespondAsync(selected);
 
                 await BotLogger.LogConversationAsync(
-                    e.Guild.Id,
-                    e.Channel.Id,
-                    e.Author.Id,
-                    displayName,
-                    e.Message.Content,
-                    selected
-                );
+        e.Author.Id,
+        e.Author.Username,
+        e.Message.Content, // ✅ This is the message
+        "message_created",
+        e.Channel.Id,
+        e.Guild?.Id ?? 0
+    );
             }
 
             var inquiries2 = new List<string> { "can I get the new bp for free?" };
@@ -58,15 +59,14 @@ namespace TheCloud
                 var responses = BotResponses.FreeBPResponses(displayName);
                 string selected = responses[random.Next(responses.Count)];
                 await e.Message.RespondAsync(selected);
-
                 await BotLogger.LogConversationAsync(
-                    e.Guild.Id,
-                    e.Channel.Id,
-                    e.Author.Id,
-                    displayName,
-                    e.Message.Content,
-                    selected
-                );
+                       e.Author.Id,
+                       e.Author.Username,
+                       e.Message.Content, // ✅ This is the message
+                       "message_created",
+                       e.Channel.Id,
+                       e.Guild?.Id ?? 0
+                   );
             }
 
             var inquiries11 = new List<string> { "can I get free GP?" };
@@ -79,13 +79,13 @@ namespace TheCloud
                 await e.Message.RespondAsync(selected);
 
                 await BotLogger.LogConversationAsync(
-                    e.Guild.Id,
-                    e.Channel.Id,
-                    e.Author.Id,
-                    displayName,
-                    e.Message.Content,
-                    selected
-                );
+        e.Author.Id,
+        e.Author.Username,
+        e.Message.Content, // ✅ This is the message
+        "message_created",
+        e.Channel.Id,
+        e.Guild?.Id ?? 0
+    );
             }
 
             var inquiries3 = new List<string> { "what is a kilometer" };
@@ -98,13 +98,13 @@ namespace TheCloud
                 await e.Message.RespondAsync(selected);
 
                 await BotLogger.LogConversationAsync(
-                    e.Guild.Id,
-                    e.Channel.Id,
-                    e.Author.Id,
-                    displayName,
-                    e.Message.Content,
-                    selected
-                );
+        e.Author.Id,
+        e.Author.Username,
+        e.Message.Content, // ✅ This is the message
+        "message_created",
+        e.Channel.Id,
+        e.Guild?.Id ?? 0
+    );
 
             }
 
@@ -118,13 +118,13 @@ namespace TheCloud
                 await e.Message.RespondAsync(selected);
 
                 await BotLogger.LogConversationAsync(
-                    e.Guild.Id,
-                    e.Channel.Id,
-                    e.Author.Id,
-                    displayName,
-                    e.Message.Content,
-                    selected
-                );
+        e.Author.Id,
+        e.Author.Username,
+        e.Message.Content, // ✅ This is the message
+        "message_created",
+        e.Channel.Id,
+        e.Guild?.Id ?? 0
+    );
 
             }
 
@@ -138,13 +138,13 @@ namespace TheCloud
                 await e.Message.RespondAsync(selected);
 
                 await BotLogger.LogConversationAsync(
-                    e.Guild.Id,
-                    e.Channel.Id,
-                    e.Author.Id,
-                    displayName,
-                    e.Message.Content,
-                    selected
-                );
+        e.Author.Id,
+        e.Author.Username,
+        e.Message.Content, // ✅ This is the message
+        "message_created",
+        e.Channel.Id,
+        e.Guild?.Id ?? 0
+    );
 
             }
 
@@ -158,13 +158,13 @@ namespace TheCloud
                 await e.Message.RespondAsync(selected);
 
                 await BotLogger.LogConversationAsync(
-                    e.Guild.Id,
-                    e.Channel.Id,
-                    e.Author.Id,
-                    displayName,
-                    e.Message.Content,
-                    selected
-                );
+         e.Author.Id,
+         e.Author.Username,
+         e.Message.Content, // ✅ This is the message
+         "message_created",
+         e.Channel.Id,
+         e.Guild?.Id ?? 0
+     );
 
             }
 
@@ -178,13 +178,13 @@ namespace TheCloud
                 await e.Message.RespondAsync(selected);
 
                 await BotLogger.LogConversationAsync(
-                    e.Guild.Id,
-                    e.Channel.Id,
-                    e.Author.Id,
-                    displayName,
-                    e.Message.Content,
-                    selected
-                );
+         e.Author.Id,
+         e.Author.Username,
+         e.Message.Content, // ✅ This is the message
+         "message_created",
+         e.Channel.Id,
+         e.Guild?.Id ?? 0
+     );
 
             }
 
@@ -198,13 +198,13 @@ namespace TheCloud
                 await e.Message.RespondAsync(selected);
 
                 await BotLogger.LogConversationAsync(
-                    e.Guild.Id,
-                    e.Channel.Id,
-                    e.Author.Id,
-                    displayName,
-                    e.Message.Content,
-                    selected
-                );
+         e.Author.Id,
+         e.Author.Username,
+         e.Message.Content, // ✅ This is the message
+         "message_created",
+         e.Channel.Id,
+         e.Guild?.Id ?? 0
+     );
 
             }
 
@@ -218,13 +218,13 @@ namespace TheCloud
                 await e.Message.RespondAsync(selected);
 
                 await BotLogger.LogConversationAsync(
-                    e.Guild.Id,
-                    e.Channel.Id,
-                    e.Author.Id,
-                    displayName,
-                    e.Message.Content,
-                    selected
-                );
+        e.Author.Id,
+        e.Author.Username,
+        e.Message.Content, // ✅ This is the message
+        "message_created",
+        e.Channel.Id,
+        e.Guild?.Id ?? 0
+    );
 
             }
 
@@ -237,13 +237,13 @@ namespace TheCloud
                 string selected = responses[random.Next(responses.Count)];
                 await e.Message.RespondAsync(selected);
                 await BotLogger.LogConversationAsync(
-                    e.Guild.Id,
-                    e.Channel.Id,
-                    e.Author.Id,
-                    displayName,
-                    e.Message.Content,
-                    selected
-                );
+        e.Author.Id,
+        e.Author.Username,
+        e.Message.Content, // ✅ This is the message
+        "message_created",
+        e.Channel.Id,
+        e.Guild?.Id ?? 0
+    );
             }
 
             // Cloud keyword greetings
@@ -263,13 +263,13 @@ namespace TheCloud
                 await e.Message.RespondAsync(selected);
 
                 await BotLogger.LogConversationAsync(
-                    e.Guild.Id,
-                    e.Channel.Id,
-                    e.Author.Id,
-                    displayName,
-                    e.Message.Content,
-                    selected
-                );
+        e.Author.Id,
+        e.Author.Username,
+        e.Message.Content, // ✅ This is the message
+        "message_created",
+        e.Channel.Id,
+        e.Guild?.Id ?? 0
+    );
                 return;
             }
 
@@ -284,13 +284,13 @@ namespace TheCloud
                 await e.Message.RespondAsync(selected);
 
                 await BotLogger.LogConversationAsync(
-                    e.Guild.Id,
-                    e.Channel.Id,
-                    e.Author.Id,
-                    displayName,
-                    e.Message.Content,
-                    selected
-                );
+        e.Author.Id,
+        e.Author.Username,
+        e.Message.Content, // ✅ This is the message
+        "message_created",
+        e.Channel.Id,
+        e.Guild?.Id ?? 0
+    );
             }
 
             var farewells = new List<string> { "bye cloud bot", "goodbye cloud bot" };
@@ -302,13 +302,13 @@ namespace TheCloud
                 string selected = responses[random.Next(responses.Count)];
                 await e.Message.RespondAsync(selected);
                 await BotLogger.LogConversationAsync(
-                    e.Guild.Id,
-                    e.Channel.Id,
-                    e.Author.Id,
-                    displayName,
-                    e.Message.Content,
-                    selected
-                );
+        e.Author.Id,
+        e.Author.Username,
+        e.Message.Content, // ✅ This is the message
+        "message_created",
+        e.Channel.Id,
+        e.Guild?.Id ?? 0
+    );
             }
 
             var thanks = new List<string> { "thanks cloud bot", "thank you cloud bot" };
@@ -320,13 +320,13 @@ namespace TheCloud
                 string selected = responses[random.Next(responses.Count)];
                 await e.Message.RespondAsync(selected);
                 await BotLogger.LogConversationAsync(
-                    e.Guild.Id,
-                    e.Channel.Id,
-                    e.Author.Id,
-                    displayName,
-                    e.Message.Content,
-                    selected
-                );
+        e.Author.Id,
+        e.Author.Username,
+        e.Message.Content, // ✅ This is the message
+        "message_created",
+        e.Channel.Id,
+        e.Guild?.Id ?? 0
+    );
             }
 
             var sorrys = new List<string> { "sorry cloud bot", "i'm sorry cloud bot" };
@@ -338,13 +338,13 @@ namespace TheCloud
                 string selected = responses[random.Next(responses.Count)];
                 await e.Message.RespondAsync(selected);
                 await BotLogger.LogConversationAsync(
-                    e.Guild.Id,
-                    e.Channel.Id,
-                    e.Author.Id,
-                    displayName,
-                    e.Message.Content,
-                    selected
-                );
+         e.Author.Id,
+         e.Author.Username,
+         e.Message.Content, // ✅ This is the message
+         "message_created",
+         e.Channel.Id,
+         e.Guild?.Id ?? 0
+     );
 
 
 

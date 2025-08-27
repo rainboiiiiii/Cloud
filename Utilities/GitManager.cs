@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using TheCloud.Commands;
 using TheCloud.config;
 using TheCloud.Logging;
+using TheCloud.Logging.BotLogger;
 
 namespace TheCloud.Utilities
 {

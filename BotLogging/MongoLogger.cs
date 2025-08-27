@@ -45,5 +45,55 @@ namespace TheCloud.Logging.BotLogger
 
             await _logCollection.InsertOneAsync(doc);
         }
+
+        public static async Task LogConversationAsync(
+            ulong userId,
+            string username,
+            string message,
+            string context = "general",
+            ulong channelId = 0,
+            ulong guildId = 0)
+        {
+            if (_logCollection == null) return;
+
+            var doc = new BsonDocument
+            {
+                { "timestamp", DateTime.UtcNow },
+                { "type", "conversation" },
+                { "userId", BsonValue.Create(userId) },
+                { "username", username },
+                { "message", message },
+                { "context", context },
+                { "channelId", BsonValue.Create(channelId) },
+                { "guildId", BsonValue.Create(guildId) }
+            };
+
+            await _logCollection.InsertOneAsync(doc);
+        }
+
+        public static async Task LogCommandAsync(
+    string commandName,
+    string username,
+    ulong userId,
+    string context = "slash_command",
+    ulong channelId = 0,
+    ulong guildId = 0)
+        {
+            if (_logCollection == null) return;
+
+            var doc = new BsonDocument
+    {
+        { "timestamp", DateTime.UtcNow },
+        { "type", "command" },
+        { "commandName", commandName },
+        { "username", username },
+        { "userId", BsonValue.Create(userId) },
+        { "context", context },
+        { "channelId", BsonValue.Create(channelId) },
+        { "guildId", BsonValue.Create(guildId) }
+    };
+
+            await _logCollection.InsertOneAsync(doc);
+        }
     }
 }

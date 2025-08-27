@@ -5,13 +5,14 @@ using DSharpPlus.Entities;
 using DSharpPlus.SlashCommands;
 using System;
 using System.IO;
-using TheCloud.UserCommands;
 using System.Linq;
 using System.Threading.Tasks;
 using TheCloud.Commands;
 using TheCloud.config;
 using TheCloud.Database;
 using TheCloud.Logging;
+using TheCloud.Logging.BotLogger;
+using TheCloud.UserCommands;
 using TheCloud.Utilities;
 
 namespace TheCloud
@@ -79,7 +80,7 @@ namespace TheCloud
             Console.WriteLine($"🔍 MONGO_URI: {discordConfigData.MONGO_URI}");
             Console.WriteLine($"🔍 ChannelID: {discordConfigData.ChannelID}");
             Console.WriteLine($"🔍 Prefix: {discordConfigData.prefix}");
-         
+
             var discordConfig = new DiscordConfiguration()
             {
                 Token = discordConfigData.token,
@@ -110,18 +111,6 @@ namespace TheCloud
                 await BotLogger.LogEventAsync("Bot is online and ready.");
             };
 
-            // ✅ Hook up your custom listener
-            var handler = new MessageHandler();
-            Client.MessageCreated += handler.OnMessageCreated;
-
-            Client.MessageCreated += async (client, e) =>
-            {
-                if (e.Author.IsBot) return;
-                if (e.Message.Content == "hello Cloud")
-                {
-                    await e.Message.RespondAsync($"Hi there, {e.Author.Username}!");
-                }
-            };
 
             var timer = new System.Timers.Timer(TimeSpan.FromHours(3).TotalMilliseconds);
             timer.Elapsed += async (sender, e) =>
@@ -213,5 +202,5 @@ namespace TheCloud
             }
         }
     }
-  }
+}
 
