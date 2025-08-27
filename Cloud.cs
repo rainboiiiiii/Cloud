@@ -95,8 +95,17 @@ namespace TheCloud
 
             Client = new DiscordClient(discordConfig);
             AdminCommands.SetConfig(discordConfigData);
-            var handler = new MessageHandler();
-            Client.MessageCreated += handler.OnMessageCreated;
+            // ✅ Attach MessageHandler listener
+            try
+            {
+                var handler = new MessageHandler();
+                Client.MessageCreated += handler.OnMessageCreated;
+                Console.WriteLine("✅ MessageHandler listener attached.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Failed to attach listener: {ex.Message}");
+            }
 
             var slash = Client.UseSlashCommands();
             slash.RegisterCommands<AdminCommands>(1139654090763276378);
@@ -168,7 +177,9 @@ namespace TheCloud
             }
 
             await Client.ConnectAsync();
-           
+            var startupChannel = await Client.GetChannelAsync(discordConfigData.ChannelID);
+            await startupChannel.SendMessageAsync("👂 Cloud is now listening for messages.");
+
             await Task.Delay(-1);
         }
 
