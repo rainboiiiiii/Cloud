@@ -9,10 +9,10 @@ namespace TheCloud.Logging.BotLogger
     {
         private static IMongoCollection<BsonDocument> _logCollection;
 
-        public static void Initialize(string mongoUri, string dbName)
+        public static void Initialize(string MONGO_URI, string MONGO_DB)
         {
-            var client = new MongoClient(mongoUri);
-            var database = client.GetDatabase(dbName);
+            var client = new MongoClient(MONGO_URI);
+            var database = client.GetDatabase(MONGO_DB);
             _logCollection = database.GetCollection<BsonDocument>("cloud_logs");
         }
 
