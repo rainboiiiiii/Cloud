@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace TheCloud.Logging.BotLogger
 {
-    public static class MongoLogger
+    public static class BotLogger
     {
         private static IMongoCollection<BsonDocument> _logCollection;
 
@@ -97,3 +97,4 @@ namespace TheCloud.Logging.BotLogger
         }
     }
 }
+  

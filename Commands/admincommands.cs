@@ -137,7 +137,7 @@ namespace TheCloud.Commands
             }
 
             File.WriteAllText("shutdown.flag", totalDelay.TotalSeconds.ToString());
-            await BotLoggerV2.LogCommandAsync("shutdown", ctx.User.Username, ctx.User.Id);
+            await BotLogger.LogCommandAsync("shutdown", ctx.User.Username, ctx.User.Id);
 
             var shutdownTime = DateTime.UtcNow.Add(totalDelay);
             await AnnounceAsync(ctx, "Shutting Down", totalDelay, shutdownTime);
@@ -150,7 +150,7 @@ namespace TheCloud.Commands
                 .WithContent(delayMessage)
                 .AsEphemeral());
 
-            await BotLoggerV2.LogEventAsync($"Shutdown scheduled for {shutdownTime:u}");
+            await BotLogger.LogEventAsync($"Shutdown scheduled for {shutdownTime:u}");
 
             await Task.Delay(totalDelay);
 
@@ -185,7 +185,7 @@ namespace TheCloud.Commands
             }
 
             // Log restart request
-            await BotLoggerV2.LogCommandAsync("restart", ctx.User.Username, ctx.User.Id);
+            await BotLogger.LogCommandAsync("restart", ctx.User.Username, ctx.User.Id);
             var restartTime = DateTime.UtcNow.Add(totalDelay);
 
             // Announce the restart
@@ -199,21 +199,21 @@ namespace TheCloud.Commands
                 .WithContent(delayMessage)
                 .AsEphemeral());
 
-            await BotLoggerV2.LogEventAsync($"Restart scheduled for {restartTime:u}");
+            await BotLogger.LogEventAsync($"Restart scheduled for {restartTime:u}");
 
             // Wait for the scheduled delay
             if (totalDelay.TotalMilliseconds > 0)
             {
-                await BotLoggerV2.LogEventAsync($"Waiting {totalDelay.TotalSeconds:F0} second(s) before restarting.");
+                await BotLogger.LogEventAsync($"Waiting {totalDelay.TotalSeconds:F0} second(s) before restarting.");
                 await Task.Delay(totalDelay);
             }
 
             // Log disconnect
-            await BotLoggerV2.LogEventAsync("Disconnecting from Discord...");
+            await BotLogger.LogEventAsync("Disconnecting from Discord...");
             await ctx.Client.DisconnectAsync();
 
             // Log self-restart attempt
-            await BotLoggerV2.LogEventAsync("Attempting to restart the bot...");
+            await BotLogger.LogEventAsync("Attempting to restart the bot...");
 
             try
             {
@@ -227,20 +227,20 @@ namespace TheCloud.Commands
                         UseShellExecute = true, // ensures it runs as a normal process
                         WorkingDirectory = Environment.CurrentDirectory
                     });
-                    await BotLoggerV2.LogEventAsync($"Successfully launched new bot process: {exePath}");
+                    await BotLogger.LogEventAsync($"Successfully launched new bot process: {exePath}");
                 }
                 else
                 {
-                    await BotLoggerV2.LogEventAsync("❌ Could not find executable path to restart.");
+                    await BotLogger.LogEventAsync("❌ Could not find executable path to restart.");
                 }
             }
             catch (Exception ex)
             {
-                await BotLoggerV2.LogEventAsync($"❌ Failed to restart bot: {ex}");
+                await BotLogger.LogEventAsync($"❌ Failed to restart bot: {ex}");
             }
 
             // Exit current process
-            await BotLoggerV2.LogEventAsync("Exiting current bot process...");
+            await BotLogger.LogEventAsync("Exiting current bot process...");
             Environment.Exit(0);
         }
 
@@ -283,57 +283,57 @@ namespace TheCloud.Commands
             // Announce to your configured announcement channel
             await AnnounceAsync(ctx, "Self-Update", totalDelay, updateTime);
 
-            await BotLoggerV2.LogCommandAsync("selfupdate", ctx.User.Username, ctx.User.Id);
-            await BotLoggerV2.LogEventAsync($"🧪 SelfUpdate scheduled for {updateTime:u}");
+            await BotLogger.LogCommandAsync("selfupdate", ctx.User.Username, ctx.User.Id);
+            await BotLogger.LogEventAsync($"🧪 SelfUpdate scheduled for {updateTime:u}");
 
             // Wait before update (if delay set)
             if (totalDelay.TotalMilliseconds > 0)
             {
-                await BotLoggerV2.LogEventAsync($"Waiting {totalDelay.TotalSeconds:F0} second(s) before self-update...");
+                await BotLogger .LogEventAsync($"Waiting {totalDelay.TotalSeconds:F0} second(s) before self-update...");
                 await Task.Delay(totalDelay);
             }
 
-            await BotLoggerV2.LogEventAsync("🔄 SelfUpdate: Starting update flow...");
+            await BotLogger.LogEventAsync("🔄 SelfUpdate: Starting update flow...");
 
             try
             {
                 bool synced = await GitManager.ForceSyncRepoAsync();
                 if (!synced)
                 {
-                    await BotLoggerV2.LogEventAsync("❌ SelfUpdate: Git sync failed.");
+                    await BotLogger.LogEventAsync("❌ SelfUpdate: Git sync failed.");
                     await AnnounceAsync(ctx, "❌ Update failed: Git sync error.", TimeSpan.Zero, DateTime.UtcNow);
                     return;
                 }
 
                 string commitHash = await GitManager.GetLatestCommitHashAsync();
-                await BotLoggerV2.LogEventAsync($"🧪 SelfUpdate: Latest commit = {commitHash}");
+                await BotLogger.LogEventAsync($"🧪 SelfUpdate: Latest commit = {commitHash}");
 
                 var (built, dllPath) = await GitManager.BuildProjectAsync();
-                await BotLoggerV2.LogEventAsync($"🧪 SelfUpdate: Build result = {built}, dllPath = {dllPath}");
+                await BotLogger.LogEventAsync($"🧪 SelfUpdate: Build result = {built}, dllPath = {dllPath}");
 
                 if (!built || string.IsNullOrEmpty(dllPath))
                 {
-                    await BotLoggerV2.LogEventAsync("❌ SelfUpdate: Build failed.");
+                    await BotLogger.LogEventAsync("❌ SelfUpdate: Build failed.");
                     await AnnounceAsync(ctx, "❌ Update failed: Build error.", TimeSpan.Zero, DateTime.UtcNow);
                     return;
                 }
 
                 bool relaunched = await GitManager.RelaunchBotAsync(commitHash, dllPath);
-                await BotLoggerV2.LogEventAsync($"🧪 SelfUpdate: Relaunch result = {relaunched}");
+                await BotLogger.LogEventAsync($"🧪 SelfUpdate: Relaunch result = {relaunched}");
 
                 if (!relaunched)
                 {
-                    await BotLoggerV2.LogEventAsync("❌ SelfUpdate: Relaunch failed.");
+                    await BotLogger.LogEventAsync("❌ SelfUpdate: Relaunch failed.");
                     await AnnounceAsync(ctx, "❌ Update failed: Relaunch error.", TimeSpan.Zero, DateTime.UtcNow);
                     return;
                 }
 
-                await BotLoggerV2.LogEventAsync("✅ SelfUpdate: Update complete.");
+                await BotLogger.LogEventAsync("✅ SelfUpdate: Update complete.");
                 await AnnounceAsync(ctx, "✅ Update complete. Bot is relaunching...", TimeSpan.Zero, DateTime.UtcNow);
             }
             catch (Exception ex)
             {
-                await BotLoggerV2.LogEventAsync($"❌ SelfUpdate: Exception occurred: {ex}");
+                await BotLogger.LogEventAsync($"❌ SelfUpdate: Exception occurred: {ex}");
                 await AnnounceAsync(ctx, "❌ Update crashed with an exception.", TimeSpan.Zero, DateTime.UtcNow);
             }
         }
@@ -381,7 +381,7 @@ namespace TheCloud.Commands
                 return;
             }
 
-            await BotLoggerV2.LogCommandAsync("postimage", ctx.User.Username, ctx.User.Id);
+            await BotLogger.LogCommandAsync("postimage", ctx.User.Username, ctx.User.Id);
 
             try
             {
@@ -393,7 +393,7 @@ namespace TheCloud.Commands
                         .WithContent("⚠️ No images available in the database.")
                         .AsEphemeral());
 
-                    await BotLoggerV2.LogImagePostAsync("N/A", false, ctx.Channel.Name);
+                    await BotLogger.LogImagePostAsync("N/A", false, ctx.Channel.Name);
                     return;
                 }
 
@@ -416,12 +416,12 @@ namespace TheCloud.Commands
 
                 stream.Dispose();
 
-                await BotLoggerV2.LogImagePostAsync(fileName, true, ctx.Channel.Name);
-                await BotLoggerV2.LogImagePostAsync(fileName, true, secondChannel.Name);
+                await BotLogger.LogImagePostAsync(fileName, true, ctx.Channel.Name);
+                await BotLogger.LogImagePostAsync(fileName, true, secondChannel.Name);
             }
             catch (Exception ex)
             {
-                await BotLoggerV2.LogImagePostAsync("N/A", false, ctx.Channel.Name);
+                await BotLogger.LogImagePostAsync("N/A", false, ctx.Channel.Name);
                 await ctx.FollowUpAsync(new DiscordFollowupMessageBuilder()
                     .WithContent($"❌ Failed to post image: {ex.Message}")
                     .AsEphemeral());
@@ -440,19 +440,19 @@ namespace TheCloud.Commands
                 return;
             }
 
-            await BotLoggerV2.LogCommandAsync("updatephoto", ctx.User.Username, ctx.User.Id);
+            await BotLogger.LogCommandAsync("updatephoto", ctx.User.Username, ctx.User.Id);
             await ctx.CreateResponseAsync(InteractionResponseType.DeferredChannelMessageWithSource);
 
             try
             {
                 var result = await _mongoImagesStatic.UploadImagesAsync("Images");
-                await BotLoggerV2.LogEventAsync($"Image upload triggered by {ctx.User.Username}: {result}");
+                await BotLogger.LogEventAsync($"Image upload triggered by {ctx.User.Username}: {result}");
 
                 await ctx.EditResponseAsync(new DiscordWebhookBuilder().WithContent(result));
             }
             catch (Exception ex)
             {
-                await BotLoggerV2.LogEventAsync($"Image upload failed: {ex.Message}");
+                await BotLogger.LogEventAsync($"Image upload failed: {ex.Message}");
                 await ctx.EditResponseAsync(new DiscordWebhookBuilder()
                     .WithContent($"❌ Failed to upload images: {ex.Message}"));
             }

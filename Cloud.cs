@@ -95,7 +95,7 @@ namespace TheCloud
             var slash = Client.UseSlashCommands();
             slash.RegisterCommands<AdminCommands>(1139654090763276378);
             slash.RegisterCommands<AdminCommands>(1408428084763299880);
-            await BotLoggerV2.LogEventAsync("✅ Slash commands registered: Testcommands");
+            await BotLogger.LogEventAsync("✅ Slash commands registered: Testcommands");
 
             var commandsConfig = new CommandsNextConfiguration()
             {
@@ -108,7 +108,7 @@ namespace TheCloud
 
             Client.Ready += async (sender, e) =>
             {
-                await BotLoggerV2.LogEventAsync("Bot is online and ready.");
+                await BotLogger.LogEventAsync("Bot is online and ready.");
             };
 
 
@@ -123,7 +123,7 @@ namespace TheCloud
             if (File.Exists("restart.flag"))
             {
                 File.Delete("restart.flag");
-                await BotLoggerV2.LogEventAsync("Bot restarted successfully.");
+                await BotLogger.LogEventAsync("Bot restarted successfully.");
                 await (await Client.GetChannelAsync(discordConfigData.ChannelID))
                     .SendMessageAsync("✅ Cloud restarted successfully.");
             }
@@ -131,7 +131,7 @@ namespace TheCloud
             if (File.Exists("shutdown.flag"))
             {
                 File.Delete("shutdown.flag");
-                await BotLoggerV2.LogEventAsync("Bot shutdown and restarted.");
+                await BotLogger.LogEventAsync("Bot shutdown and restarted.");
                 await (await Client.GetChannelAsync(discordConfigData.ChannelID))
                     .SendMessageAsync("🛑 Cloud shut down and restarted.");
             }
@@ -156,7 +156,7 @@ namespace TheCloud
             }
             catch (Exception ex)
             {
-                await BotLoggerV2.LogEventAsync($"⚠️ CloudProgram: Failed to announce startup: {ex.Message}");
+                await BotLogger.LogEventAsync($"⚠️ CloudProgram: Failed to announce startup: {ex.Message}");
             }
         }
 
@@ -174,7 +174,7 @@ namespace TheCloud
                 if (imageBytes == null || string.IsNullOrEmpty(fileName))
                 {
                     Console.WriteLine("⚠️ No image found in MongoDB.");
-                    await BotLoggerV2.LogImagePostAsync("N/A", false);
+                    await BotLogger.LogImagePostAsync("N/A", false);
                     return;
                 }
 
@@ -186,18 +186,18 @@ namespace TheCloud
                     .WithContent("Here’s a new image!")
                     .AddFile(fileName, stream1));
 
-                await BotLoggerV2.LogImagePostAsync(fileName, true, primaryChannel.Name);
+                await BotLogger.LogImagePostAsync(fileName, true, primaryChannel.Name);
 
                 var stream2 = new MemoryStream(imageBytes);
                 await secondaryChannel.SendMessageAsync(new DiscordMessageBuilder()
                     .WithContent("Here’s a new image!")
                     .AddFile(fileName, stream2));
 
-                await BotLoggerV2.LogImagePostAsync(fileName, true, secondaryChannel.Name);
+                await BotLogger.LogImagePostAsync(fileName, true, secondaryChannel.Name);
             }
             catch (Exception ex)
             {
-                await BotLoggerV2.LogImagePostAsync("N/A", false);
+                await BotLogger.LogImagePostAsync("N/A", false);
                 Console.WriteLine($"❌ Failed to post image: {ex.Message}");
             }
         }
