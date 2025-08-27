@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TheCloud.Utilities;
 using TheCloud;
 using TheCloud.Listener;
 using TheCloud.Logging.BotLogger;
@@ -21,7 +22,7 @@ namespace TheCloud
             if (e.Author.IsBot)
                 return;
 
-            if (!CloudProgram.RateLimiter.CanRespond(e.Author.Id))
+            if (!CloudProgramOfficial.RateLimiter.CanRespond(e.Author.Id))
             {
                 string userInput = e.Message.Content.ToLower().Trim();
                 var random = new Random();
