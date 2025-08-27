@@ -95,6 +95,8 @@ namespace TheCloud
 
             Client = new DiscordClient(discordConfig);
             AdminCommands.SetConfig(discordConfigData);
+            var handler = new MessageHandler();
+            Client.MessageCreated += handler.OnMessageCreated;
 
             var slash = Client.UseSlashCommands();
             slash.RegisterCommands<AdminCommands>(1139654090763276378);
