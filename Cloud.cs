@@ -177,7 +177,7 @@ namespace TheCloud
         {
             if (_mongoImages == null)
             {
-                Console.WriteLine("⚠️ MongoImages not initialized. Skipping image post.");
+                Console.WriteLine("⚠️ Oh no! MongoImages not initialized. Skipping image post.");
                 return;
             }
 
