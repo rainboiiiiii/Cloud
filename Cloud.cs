@@ -19,8 +19,12 @@ namespace TheCloud
 {
     internal class CloudProgram
     {
+        public static MongoLogger BotLoggerV2 { get; private set; }
         private static DiscordClient Client { get; set; }
+        
         private static CommandsNextExtension Commands { get; set; }
+
+        private const bool ImagePostFailed = false;
         private static MongoImages _mongoImages;
         private static JSONStructure discordConfigData;
 
@@ -69,11 +73,20 @@ namespace TheCloud
                 {
                     _mongoImages = new MongoImages(discordConfigData.MONGO_URI, discordConfigData.MONGO_DB);
                     AdminCommands.SetMongoImages(_mongoImages);
+                    // 🔹 initialize logger HERE
+                    BotLoggerV2 = new MongoLogger(
+                        discordConfigData.MONGO_URI,   // connection string
+                        discordConfigData.MONGO_DB,    // database name
+                        "EventLogs"                    // collection name
+                    );
+
+                    await BotLoggerV2.LogEventAsync("Startup", "✅ MongoDB logger initialized.");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"❌ Failed to initialize MongoImages: {ex.Message}");
+                    Console.WriteLine($"❌ Failed to initialize Mongo services: {ex.Message}");
                     _mongoImages = null;
+                    BotLoggerV2 = null;
                 }
             }
 
@@ -174,7 +187,7 @@ namespace TheCloud
                 if (imageBytes == null || string.IsNullOrEmpty(fileName))
                 {
                     Console.WriteLine("⚠️ No image found in MongoDB.");
-                    await BotLoggerV2.LogImagePostAsync("N/A", false);
+                    await BotLoggerV2.LogEventAsync("N/A", ImagePostFailed);
                     return;
                 }
 
@@ -186,7 +199,7 @@ namespace TheCloud
                     .WithContent("Here’s a new image!")
                     .AddFile(fileName, stream1));
 
-                await BotLoggerV2.LogImagePostAsync(fileName, true, primaryChannel.Name);
+                await BotLoggerV2.LogEventAsync(fileName, true, primaryChannel.Name);
 
                 var stream2 = new MemoryStream(imageBytes);
                 await secondaryChannel.SendMessageAsync(new DiscordMessageBuilder()
