@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using TheCloud.Commands;
 using TheCloud.config;
 using TheCloud.Database;
-using TheCloud.Logging;
 using TheCloud.Logging.BotLogger;
 using TheCloud.UserCommands;
 using TheCloud.Utilities;
@@ -19,11 +18,8 @@ namespace TheCloud
 {
     internal class CloudProgram
     {
-        public static MongoLogger BotLoggerV2 { get; private set; }
         private static DiscordClient Client { get; set; }
-        
         private static CommandsNextExtension Commands { get; set; }
-
         private const bool ImagePostFailed = false;
         private static MongoImages _mongoImages;
         private static JSONStructure discordConfigData;
@@ -73,20 +69,15 @@ namespace TheCloud
                 {
                     _mongoImages = new MongoImages(discordConfigData.MONGO_URI, discordConfigData.MONGO_DB);
                     AdminCommands.SetMongoImages(_mongoImages);
-                    // 🔹 initialize logger HERE
-                    BotLoggerV2 = new MongoLogger(
-                        discordConfigData.MONGO_URI,   // connection string
-                        discordConfigData.MONGO_DB,    // database name
-                        "EventLogs"                    // collection name
-                    );
 
+                    // 🔹 Initialize logger
+                    BotLoggerV2.Initialize(discordConfigData.MONGO_URI, discordConfigData.MONGO_DB);
                     await BotLoggerV2.LogEventAsync("Startup", "✅ MongoDB logger initialized.");
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"❌ Failed to initialize Mongo services: {ex.Message}");
                     _mongoImages = null;
-                    BotLoggerV2 = null;
                 }
             }
 
@@ -94,7 +85,7 @@ namespace TheCloud
             Console.WriteLine($"🔍 ChannelID: {discordConfigData.ChannelID}");
             Console.WriteLine($"🔍 Prefix: {discordConfigData.prefix}");
 
-            var discordConfig = new DiscordConfiguration()
+            var discordConfig = new DiscordConfiguration
             {
                 Token = discordConfigData.token,
                 TokenType = TokenType.Bot,
@@ -110,7 +101,7 @@ namespace TheCloud
             slash.RegisterCommands<AdminCommands>(1408428084763299880);
             await BotLoggerV2.LogEventAsync("✅ Slash commands registered: Testcommands");
 
-            var commandsConfig = new CommandsNextConfiguration()
+            var commandsConfig = new CommandsNextConfiguration
             {
                 StringPrefixes = new[] { discordConfigData.prefix },
                 EnableDms = true,
@@ -118,18 +109,14 @@ namespace TheCloud
                 EnableDefaultHelp = true
             };
 
-
             Client.Ready += async (sender, e) =>
             {
                 await BotLoggerV2.LogEventAsync("Bot is online and ready.");
             };
 
-
             var timer = new System.Timers.Timer(TimeSpan.FromHours(3).TotalMilliseconds);
             timer.Elapsed += async (sender, e) =>
-            {
-                await PostRandomImageAsync();
-            };
+          
             timer.AutoReset = true;
             timer.Start();
 
@@ -137,23 +124,22 @@ namespace TheCloud
             {
                 File.Delete("restart.flag");
                 await BotLoggerV2.LogEventAsync("Bot restarted successfully.");
-                await (await Client.GetChannelAsync(discordConfigData.ChannelID))
-                    .SendMessageAsync("✅ Cloud restarted successfully.");
+                var restartChannel = await Client.GetChannelAsync(discordConfigData.ChannelID);
+                await restartChannel.SendMessageAsync("✅ Cloud restarted successfully.");
             }
 
             if (File.Exists("shutdown.flag"))
             {
                 File.Delete("shutdown.flag");
                 await BotLoggerV2.LogEventAsync("Bot shutdown and restarted.");
-                await (await Client.GetChannelAsync(discordConfigData.ChannelID))
-                    .SendMessageAsync("🛑 Cloud shut down and restarted.");
+                var shutdownChannel = await Client.GetChannelAsync(discordConfigData.ChannelID);
+                await shutdownChannel.SendMessageAsync("🛑 Cloud shut down and restarted.");
             }
 
             await Client.ConnectAsync();
-            await AnnounceStartupAsync(); // ✅ Add this here
+           
             await Task.Delay(-1);
         }
-
 
         public static async Task AnnounceStartupAsync()
         {
@@ -165,7 +151,8 @@ namespace TheCloud
             try
             {
                 var channel = await client.GetChannelAsync(config.AnnouncementChannelID);
-                await channel.SendMessageAsync($"✅ Cloud is now running.\nVersion: `{await GitManager.GetLatestCommitHashAsync()}`");
+                var version = await GitManager.GetLatestCommitHashAsync();
+                await channel.SendMessageAsync($"✅ Cloud is now running.\nVersion: `{version}`");
             }
             catch (Exception ex)
             {
@@ -187,21 +174,21 @@ namespace TheCloud
                 if (imageBytes == null || string.IsNullOrEmpty(fileName))
                 {
                     Console.WriteLine("⚠️ No image found in MongoDB.");
-                    await BotLoggerV2.LogEventAsync("N/A", ImagePostFailed);
+                    await BotLoggerV2.LogEventAsync("ImagePost", "No image found.");
                     return;
                 }
 
                 var primaryChannel = await Client.GetChannelAsync(discordConfigData.CloudsChannelID);
                 var secondaryChannel = await Client.GetChannelAsync(discordConfigData.ChannelID);
 
-                var stream1 = new MemoryStream(imageBytes);
+                using var stream1 = new MemoryStream(imageBytes);
                 await primaryChannel.SendMessageAsync(new DiscordMessageBuilder()
                     .WithContent("Here’s a new image!")
                     .AddFile(fileName, stream1));
 
-                await BotLoggerV2.LogEventAsync(fileName, true, primaryChannel.Name);
+                await BotLoggerV2.LogImagePostAsync(fileName, true, primaryChannel.Name);
 
-                var stream2 = new MemoryStream(imageBytes);
+                using var stream2 = new MemoryStream(imageBytes);
                 await secondaryChannel.SendMessageAsync(new DiscordMessageBuilder()
                     .WithContent("Here’s a new image!")
                     .AddFile(fileName, stream2));
@@ -216,4 +203,3 @@ namespace TheCloud
         }
     }
 }
-
