@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace TheCloud.Logging
 {
-    public static class BotLogger
+    public static class BotLoggerV2
     {
         private static IMongoCollection<BsonDocument> _logCollection;
         private static string _logFilePath = Path.Combine(AppContext.BaseDirectory, "bot_logs.txt");
 
-        static BotLogger()
+        static BotLoggerV2()
         {
             try
             {

@@ -19,7 +19,7 @@ namespace TheCloud.Utilities
         // 🔄 Force sync repo
         public static async Task<bool> ForceSyncRepoAsync()
         {
-            await BotLogger.LogEventAsync("📥 GitManager: Starting git fetch + reset...");
+            await BotLoggerV2.LogEventAsync("📥 GitManager: Starting git fetch + reset...");
 
             var fetch = new ProcessStartInfo
             {
@@ -55,16 +55,16 @@ namespace TheCloud.Utilities
                 string resetErr = await resetProcess.StandardError.ReadToEndAsync();
                 resetProcess.WaitForExit();
 
-                await BotLogger.LogEventAsync($"📤 GitManager: fetch exit code = {fetchProcess.ExitCode}");
-                await BotLogger.LogEventAsync($"📤 GitManager: reset exit code = {resetProcess.ExitCode}");
-                await BotLogger.LogEventAsync($"📤 GitManager: reset stdout:\n{resetOut}");
-                await BotLogger.LogEventAsync($"📤 GitManager: reset stderr:\n{resetErr}");
+                await BotLoggerV2.LogEventAsync($"📤 GitManager: fetch exit code = {fetchProcess.ExitCode}");
+                await BotLoggerV2.LogEventAsync($"📤 GitManager: reset exit code = {resetProcess.ExitCode}");
+                await BotLoggerV2.LogEventAsync($"📤 GitManager: reset stdout:\n{resetOut}");
+                await BotLoggerV2.LogEventAsync($"📤 GitManager: reset stderr:\n{resetErr}");
 
                 return resetProcess.ExitCode == 0;
             }
             catch (Exception ex)
             {
-                await BotLogger.LogEventAsync($"❌ GitManager: Git sync failed: {ex.Message}");
+                await BotLoggerV2.LogEventAsync($"❌ GitManager: Git sync failed: {ex.Message}");
                 return false;
             }
         }
@@ -78,7 +78,7 @@ namespace TheCloud.Utilities
 
             // ✅ Create the folder first
             Directory.CreateDirectory(newRuntimePath);
-            await BotLogger.LogEventAsync($"🔧 GitManager: Publishing to new runtime folder: {newRuntimePath}");
+            await BotLoggerV2.LogEventAsync($"🔧 GitManager: Publishing to new runtime folder: {newRuntimePath}");
 
             // ✅ Copy config.enc after folder exists
             string configPath = Path.Combine(RepoPath, "config.enc");
@@ -87,11 +87,11 @@ namespace TheCloud.Utilities
             if (File.Exists(configPath))
             {
                 File.Copy(configPath, targetPath, overwrite: true);
-                await BotLogger.LogEventAsync($"📦 GitManager: Copied config.enc to runtime folder: {targetPath}");
+                await BotLoggerV2.LogEventAsync($"📦 GitManager: Copied config.enc to runtime folder: {targetPath}");
             }
             else
             {
-                await BotLogger.LogEventAsync($"⚠️ GitManager: config.enc not found at {configPath}");
+                await BotLoggerV2.LogEventAsync($"⚠️ GitManager: config.enc not found at {configPath}");
             }
 
             var build = new ProcessStartInfo
@@ -109,9 +109,9 @@ namespace TheCloud.Utilities
             string error = await process.StandardError.ReadToEndAsync();
             process.WaitForExit();
 
-            await BotLogger.LogEventAsync($"🔧 GitManager: build output:\n{output}");
+            await BotLoggerV2.LogEventAsync($"🔧 GitManager: build output:\n{output}");
             if (!string.IsNullOrWhiteSpace(error))
-                await BotLogger.LogEventAsync($"⚠️ GitManager: build error:\n{error}");
+                await BotLoggerV2.LogEventAsync($"⚠️ GitManager: build error:\n{error}");
 
             if (process.ExitCode != 0)
                 return (false, null);
@@ -120,22 +120,22 @@ namespace TheCloud.Utilities
 
             if (!File.Exists(dllPath))
             {
-                await BotLogger.LogEventAsync($"❌ GitManager: Published .dll not found at {dllPath}");
+                await BotLoggerV2.LogEventAsync($"❌ GitManager: Published .dll not found at {dllPath}");
                 return (false, null);
             }
 
-            await BotLogger.LogEventAsync($"📦 GitManager: Published .dll ready at: {dllPath}");
+            await BotLoggerV2.LogEventAsync($"📦 GitManager: Published .dll ready at: {dllPath}");
             return (true, dllPath);
         }
 
         // 🚀 Relaunch bot safely
         public static async Task<bool> RelaunchBotAsync(string commitHash, string exePath)
         {
-            await BotLogger.LogEventAsync("🚀 GitManager: Attempting to relaunch bot...");
+            await BotLoggerV2.LogEventAsync("🚀 GitManager: Attempting to relaunch bot...");
 
             if (!File.Exists(exePath))
             {
-                await BotLogger.LogEventAsync($"❌ GitManager: Executable not found at {exePath}");
+                await BotLoggerV2.LogEventAsync($"❌ GitManager: Executable not found at {exePath}");
                 return false;
             }
 
@@ -150,14 +150,14 @@ namespace TheCloud.Utilities
                     WindowStyle = ProcessWindowStyle.Normal
                 });
 
-                await BotLogger.LogEventAsync($"✅ GitManager: Bot relaunched successfully. Version: {commitHash}");
+                await BotLoggerV2.LogEventAsync($"✅ GitManager: Bot relaunched successfully. Version: {commitHash}");
 
                 var client = AdminCommands.GetClient();
                 var config = AdminCommands.GetConfig();
 
                 if (client == null || config == null)
                 {
-                    await BotLogger.LogEventAsync("❌ GitManager: Cannot announce restart—client or config is null.");
+                    await BotLoggerV2.LogEventAsync("❌ GitManager: Cannot announce restart—client or config is null.");
                     return true;
                 }
 
@@ -168,7 +168,7 @@ namespace TheCloud.Utilities
                 }
                 catch (Exception ex)
                 {
-                    await BotLogger.LogEventAsync($"⚠️ GitManager: Failed to send restart message: {ex.Message}");
+                    await BotLoggerV2.LogEventAsync($"⚠️ GitManager: Failed to send restart message: {ex.Message}");
                 }
 
                 CleanupOldRuntimes(RuntimeBasePath, keepLatest: 3);
@@ -176,7 +176,7 @@ namespace TheCloud.Utilities
             }
             catch (Exception ex)
             {
-                await BotLogger.LogEventAsync($"❌ GitManager: Failed to relaunch bot: {ex.Message}");
+                await BotLoggerV2.LogEventAsync($"❌ GitManager: Failed to relaunch bot: {ex.Message}");
                 return false;
             }
         }
@@ -214,17 +214,17 @@ namespace TheCloud.Utilities
                     try
                     {
                         Directory.Delete(folder, true);
-                        BotLogger.LogEventAsync($"🧹 GitManager: Deleted old runtime folder: {folder}");
+                        BotLoggerV2.LogEventAsync($"🧹 GitManager: Deleted old runtime folder: {folder}");
                     }
                     catch (Exception ex)
                     {
-                        BotLogger.LogEventAsync($"⚠️ GitManager: Failed to delete old folder {folder}: {ex.Message}");
+                        BotLoggerV2.LogEventAsync($"⚠️ GitManager: Failed to delete old folder {folder}: {ex.Message}");
                     }
                 }
             }
             catch (Exception ex)
             {
-                BotLogger.LogEventAsync($"⚠️ GitManager: Cleanup failed: {ex.Message}");
+                BotLoggerV2.LogEventAsync($"⚠️ GitManager: Cleanup failed: {ex.Message}");
             }
         }
     }

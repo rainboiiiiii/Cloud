@@ -40,7 +40,7 @@ namespace TheCloud
                 string selected = responses[random.Next(responses.Count)];
                 await e.Message.RespondAsync(selected);
 
-                await BotLogger.LogConversationAsync(
+                await BotLoggerV2.LogConversationAsync(
                     e.Guild.Id,
                     e.Channel.Id,
                     e.Author.Id,
@@ -59,7 +59,7 @@ namespace TheCloud
                 string selected = responses[random.Next(responses.Count)];
                 await e.Message.RespondAsync(selected);
 
-                await BotLogger.LogConversationAsync(
+                await BotLoggerV2.LogConversationAsync(
                     e.Guild.Id,
                     e.Channel.Id,
                     e.Author.Id,
@@ -78,7 +78,7 @@ namespace TheCloud
                 string selected = responses[random.Next(responses.Count)];
                 await e.Message.RespondAsync(selected);
 
-                await BotLogger.LogConversationAsync(
+                await BotLoggerV2.LogConversationAsync(
                     e.Guild.Id,
                     e.Channel.Id,
                     e.Author.Id,
@@ -97,7 +97,7 @@ namespace TheCloud
                 string selected = responses[random.Next(responses.Count)];
                 await e.Message.RespondAsync(selected);
 
-                await BotLogger.LogConversationAsync(
+                await BotLoggerV2.LogConversationAsync(
                     e.Guild.Id,
                     e.Channel.Id,
                     e.Author.Id,
@@ -117,7 +117,7 @@ namespace TheCloud
                 string selected = responses[random.Next(responses.Count)];
                 await e.Message.RespondAsync(selected);
 
-                await BotLogger.LogConversationAsync(
+                await BotLoggerV2.LogConversationAsync(
                     e.Guild.Id,
                     e.Channel.Id,
                     e.Author.Id,
@@ -137,7 +137,7 @@ namespace TheCloud
                 string selected = responses[random.Next(responses.Count)];
                 await e.Message.RespondAsync(selected);
 
-                await BotLogger.LogConversationAsync(
+                await BotLoggerV2.LogConversationAsync(
                     e.Guild.Id,
                     e.Channel.Id,
                     e.Author.Id,
@@ -157,7 +157,7 @@ namespace TheCloud
                 string selected = responses[random.Next(responses.Count)];
                 await e.Message.RespondAsync(selected);
 
-                await BotLogger.LogConversationAsync(
+                await BotLoggerV2.LogConversationAsync(
                     e.Guild.Id,
                     e.Channel.Id,
                     e.Author.Id,
@@ -177,7 +177,7 @@ namespace TheCloud
                 string selected = responses[random.Next(responses.Count)];
                 await e.Message.RespondAsync(selected);
 
-                await BotLogger.LogConversationAsync(
+                await BotLoggerV2.LogConversationAsync(
                     e.Guild.Id,
                     e.Channel.Id,
                     e.Author.Id,
@@ -197,7 +197,7 @@ namespace TheCloud
                 string selected = responses[random.Next(responses.Count)];
                 await e.Message.RespondAsync(selected);
 
-                await BotLogger.LogConversationAsync(
+                await BotLoggerV2.LogConversationAsync(
                     e.Guild.Id,
                     e.Channel.Id,
                     e.Author.Id,
@@ -217,7 +217,7 @@ namespace TheCloud
                 string selected = responses[random.Next(responses.Count)];
                 await e.Message.RespondAsync(selected);
 
-                await BotLogger.LogConversationAsync(
+                await BotLoggerV2.LogConversationAsync(
                     e.Guild.Id,
                     e.Channel.Id,
                     e.Author.Id,
@@ -236,7 +236,7 @@ namespace TheCloud
                 var responses = BotResponses.OwnerResponses(displayName);
                 string selected = responses[random.Next(responses.Count)];
                 await e.Message.RespondAsync(selected);
-                await BotLogger.LogConversationAsync(
+                await BotLoggerV2.LogConversationAsync(
                     e.Guild.Id,
                     e.Channel.Id,
                     e.Author.Id,
@@ -262,7 +262,7 @@ namespace TheCloud
                 string selected = responses[random.Next(responses.Count)];
                 await e.Message.RespondAsync(selected);
 
-                await BotLogger.LogConversationAsync(
+                await BotLoggerV2.LogConversationAsync(
                     e.Guild.Id,
                     e.Channel.Id,
                     e.Author.Id,
@@ -283,7 +283,7 @@ namespace TheCloud
                 string selected = responses[random.Next(responses.Count)];
                 await e.Message.RespondAsync(selected);
 
-                await BotLogger.LogConversationAsync(
+                await BotLoggerV2.LogConversationAsync(
                     e.Guild.Id,
                     e.Channel.Id,
                     e.Author.Id,
@@ -301,7 +301,7 @@ namespace TheCloud
                 var responses = BotResponses.ByeResponses(displayName);
                 string selected = responses[random.Next(responses.Count)];
                 await e.Message.RespondAsync(selected);
-                await BotLogger.LogConversationAsync(
+                await BotLoggerV2.LogConversationAsync(
                     e.Guild.Id,
                     e.Channel.Id,
                     e.Author.Id,
@@ -319,7 +319,7 @@ namespace TheCloud
                 var responses = BotResponses.ThanksResponses(displayName);
                 string selected = responses[random.Next(responses.Count)];
                 await e.Message.RespondAsync(selected);
-                await BotLogger.LogConversationAsync(
+                await BotLoggerV2.LogConversationAsync(
                     e.Guild.Id,
                     e.Channel.Id,
                     e.Author.Id,
@@ -337,7 +337,7 @@ namespace TheCloud
                 var responses = BotResponses.SorryResponses(displayName);
                 string selected = responses[random.Next(responses.Count)];
                 await e.Message.RespondAsync(selected);
-                await BotLogger.LogConversationAsync(
+                await BotLoggerV2.LogConversationAsync(
                     e.Guild.Id,
                     e.Channel.Id,
                     e.Author.Id,
