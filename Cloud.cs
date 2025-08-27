@@ -89,7 +89,7 @@ namespace TheCloud
             {
                 Token = discordConfigData.token,
                 TokenType = TokenType.Bot,
-                Intents = DiscordIntents.All | DiscordIntents.GuildMembers,
+                Intents = DiscordIntents.All | DiscordIntents.GuildMembers | DiscordIntents.MessageContents,
                 AutoReconnect = true
             };
 
