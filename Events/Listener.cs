@@ -22,7 +22,7 @@ namespace TheCloud
             if (e.Author.IsBot)
                 return;
 
-            if (!CloudProgramOfficial.RateLimiter.CanRespond(e.Author.Id))
+            if (CloudProgramOfficial.RateLimiter.CanRespond(e.Author.Id))
             {
                 string userInput = e.Message.Content.ToLower().Trim();
                 var random = new Random();
