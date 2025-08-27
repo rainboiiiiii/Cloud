@@ -120,11 +120,12 @@ namespace TheCloud
                 EnableDefaultHelp = true
             };
 
-           
-           Client.Ready += async (sender, e) =>
-           {
-               await BotLoggerV2.LogEventAsync("Bot is online and ready.");
-           };
+
+            Client.Ready += async (sender, e) =>
+            {
+                await BotLoggerV2.LogEventAsync("Bot is online and ready.");
+                Console.WriteLine("✅ Bot is ready.");
+            };
 
             var timer = new System.Timers.Timer(TimeSpan.FromHours(3).TotalMilliseconds);
             timer.Elapsed += async (sender, e) =>
